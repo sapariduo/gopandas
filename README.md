@@ -1,5 +1,5 @@
 Gopandas is an experimental golang package that aims to use "R/Python DataFrames".
-This package is full inspirated by the pandas package in python and try to reproduce some of his functionnalities as:
+This package is full inspirated by the pandas package in python and try to reproduce some of his functionalities as:
 
 - Have a structure of data organized in columns (called a DataFrame)
 - Create a DataFrame from a CSV or JSON file
