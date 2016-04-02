@@ -10,8 +10,7 @@ This package is full inspirated by the pandas package in python and try to repro
 - Join (TO DO)
 - Apply functions
 
-This package has been develop with the intention to be usable by machine learning packages in go. Therefore
-some point of view had been taken and won't be justified.
+This package has been develop with the intention to be usable by machine learning packages in go.
 
 **Output representation of a dataframe use the [github.com/olekukonko/tablewriter](github.com/olekukonko/tablewriter) package**
 
