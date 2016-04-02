@@ -9,6 +9,7 @@ This package is full inspirated by the pandas package in python and try to repro
 - Group by (TO DO)
 - Join (TO DO)
 - Apply functions
+- Statistical functions (TO DO)
 
 This package has been develop with the intention to be usable by machine learning packages in go.
 
