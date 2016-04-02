@@ -12,7 +12,7 @@ This package is full inspirated by the pandas package in python and try to repro
 
 This package has been develop with the intention to be usable by machine learning packages in go.
 
-**Output representation of a dataframe use the [github.com/olekukonko/tablewriter](github.com/olekukonko/tablewriter) package**
+**Output representation of a dataframe use the [github.com/olekukonko/tablewriter](https://github.com/olekukonko/tablewriter) package**
 
 **/!\ THIS PACKAGE IS STILL UNDER DEVELOPMENT. A LOT OF FUNCTIONALITIES IS MISSING AND/OR COULD BE CHANGED /!\ **
 
