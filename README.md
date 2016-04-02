@@ -20,8 +20,8 @@ some point of view had been taken and won't be justified.
 # Installation
 
 ```
-go get -u github.com/olekukonko/tablewriter
-go get -u github.com/fmarmol/gopandas
+go get github.com/olekukonko/tablewriter
+go get github.com/fmarmol/gopandas
 ```
 
 # Initialize a DataFrame
