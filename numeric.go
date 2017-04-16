@@ -93,3 +93,7 @@ func (n Numeric) NotEqual(c C) bool {
 	}
 	return ret
 }
+
+func (Numeric) Type() Type {
+	return NUMERIC
+}

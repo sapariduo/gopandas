@@ -5,6 +5,9 @@ type Nan string
 func newNan() C {
 	return Nan("Nan")
 }
+func (Nan) Type() Type {
+	return NAN
+}
 
 func (n Nan) Add(c C) C {
 	return n

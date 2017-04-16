@@ -4,6 +4,10 @@ import "time"
 
 type Time time.Time
 
+func (Time) Type() Type {
+	return TIME
+}
+
 func (t Time) Add(c C) C {
 	return t
 }

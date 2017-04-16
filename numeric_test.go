@@ -2,6 +2,17 @@ package gopandas
 
 import "testing"
 
+func TestNumericType(t *testing.T) {
+	var s Numeric
+
+	switch s.Type() {
+	case NUMERIC:
+		return
+	default:
+		t.Error("Wrong type")
+	}
+}
+
 func TestNumericAdd(t *testing.T) {
 	n1 := Numeric(1)
 	n2 := Numeric(2)

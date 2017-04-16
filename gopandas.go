@@ -18,36 +18,27 @@ import (
 
 // NewC if function with create a C interface element wich is contained in a dataframe.
 // C can be Numeric to perform mathematical operations, Time to use datetime, String or Nan
-func NewC(i interface{}) (C, Type) {
+func NewC(i interface{}) C {
 	var ret C
-	var t Type
 	switch i.(type) {
 	case float64:
 		ret = Numeric(i.(float64))
-		t = NUMERIC
 	case int:
 		ret = Numeric(float64(i.(int)))
-		t = NUMERIC
 	case int64:
 		ret = Numeric(float64(i.(int64)))
-		t = NUMERIC
 	case time.Time:
 		ret = Time(i.(time.Time))
-		t = TIME
 	case string:
 		ret = String(i.(string))
-		t = STRING
 	case Numeric:
 		ret = i.(Numeric)
-		t = NUMERIC
 	case String:
 		ret = i.(String)
-		t = STRING
 	default:
 		ret = Nan("NaN")
-		t = NAN
 	}
-	return ret, t
+	return ret
 }
 
 // DataFrame is the structure of a dataframe, Data are avaibable with Df attribute
@@ -85,7 +76,7 @@ func convertTo(s string) interface{} {
 // NewDataFrameJSON is a function to create of a dataframe from a JSON file
 // Json data must be in the format of []map[string]interface{}
 // No more checks are done
-func (c *ConfigDataFrame) NewDataFrameJSON() *DataFrame {
+func NewDataFrameJSON(c *ConfigDataFrame) *DataFrame {
 	fd, err := os.Open(c.File)
 	if err != nil {
 		return nil
@@ -116,7 +107,8 @@ func (c *ConfigDataFrame) NewDataFrameJSON() *DataFrame {
 				fmt.Printf("Error: Columns are not consistent\n")
 				return nil
 			}
-			v, t := NewC(r[col])
+			v := NewC(r[col])
+			t := v.Type()
 			df.Df[col][index] = v
 			_, ok = df.Types[col][t]
 			if ok == false {
@@ -129,7 +121,7 @@ func (c *ConfigDataFrame) NewDataFrameJSON() *DataFrame {
 }
 
 // NewDataFrameCSV is a function to create of a dataframe from a CSV file
-func (c *ConfigDataFrame) NewDataFrameCSV() *DataFrame {
+func NewDataFrameCSV(c *ConfigDataFrame) *DataFrame {
 	fd, err := os.Open(c.File)
 	if err != nil {
 		return nil
@@ -148,7 +140,8 @@ func (c *ConfigDataFrame) NewDataFrameCSV() *DataFrame {
 		for index, col := range df.Columns {
 			df.Df[col] = make([]C, len(lines))
 			df.Types[col] = map[Type]int{}
-			v, t := NewC(convertTo(lines[0][index]))
+			v := NewC(convertTo(lines[0][index]))
+			t := v.Type()
 			df.Df[col][0] = v
 			_, ok := df.Types[col]
 			if ok == false {
@@ -165,7 +158,8 @@ func (c *ConfigDataFrame) NewDataFrameCSV() *DataFrame {
 			df.Columns[i] = col
 			df.Df[col] = make([]C, len(lines)+1)
 			df.Types[col] = map[Type]int{}
-			v, t := NewC(convertTo(firstline[i]))
+			v := NewC(convertTo(firstline[i]))
+			t := v.Type()
 			df.Df[col][0] = v
 			_, ok := df.Types[col][t]
 			if ok == false {
@@ -177,7 +171,8 @@ func (c *ConfigDataFrame) NewDataFrameCSV() *DataFrame {
 	}
 	for nb, line := range lines {
 		for index, col := range df.Columns {
-			v, t := NewC(convertTo(line[index]))
+			v := NewC(convertTo(line[index]))
+			t := v.Type()
 			df.Df[col][nb+1] = v
 			_, ok := df.Types[col]
 			if ok == false {
@@ -311,17 +306,17 @@ func (df *DataFrame) SetList(l interface{}, col string) {
 	for i := 0; i < length; i++ {
 		vv := v.Index(i)
 		tt := vv.Kind()
-		var tc Type
 		switch tt {
 		case reflect.String:
-			tmp[i], tc = NewC(convertTo(vv.String()))
+			tmp[i] = NewC(convertTo(vv.String()))
 		case reflect.Int:
-			tmp[i], tc = NewC(vv.Int())
+			tmp[i] = NewC(vv.Int())
 		case reflect.Float64:
-			tmp[i], tc = NewC(vv.Float())
+			tmp[i] = NewC(vv.Float())
 		default:
-			tmp[i], tc = NewC(vv.Interface())
+			tmp[i] = NewC(vv.Interface())
 		}
+		tc := tmp[i].Type()
 		_, ok = df.Types[col][tc]
 		if ok == false {
 			df.Types[col][tc] = 0
@@ -395,7 +390,7 @@ func (df *DataFrame) ToMatrix(cols ...string) ([]string, [][]float64) {
 // FilterGT is function to filter if data in the specified column are greater than i argument
 // Return of the function is the indexes of data wich are greater than i
 func (df *DataFrame) FilterGT(col string, i interface{}) []int {
-	c, _ := NewC(i)
+	c := NewC(i)
 	_, ok := df.Df[col]
 	if ok == false {
 		fmt.Printf("Warning: Column name [%v] doesn't exist\n", col)
@@ -412,7 +407,7 @@ func (df *DataFrame) FilterGT(col string, i interface{}) []int {
 
 // FilterLT is a function similar to FilterGT for the lower than condition
 func (df *DataFrame) FilterLT(col string, i interface{}) []int {
-	c, _ := NewC(i)
+	c := NewC(i)
 	_, ok := df.Df[col]
 	if ok == false {
 		fmt.Printf("Warning: Column name [%v] doesn't exist\n", col)
@@ -429,7 +424,7 @@ func (df *DataFrame) FilterLT(col string, i interface{}) []int {
 
 // FilterEQ is a function similar to FilterGT for the equal condition
 func (df *DataFrame) FilterEQ(col string, i interface{}) []int {
-	c, _ := NewC(i)
+	c := NewC(i)
 	_, ok := df.Df[col]
 	if ok == false {
 		fmt.Printf("Warning: Column name [%v] doesn't exist\n", col)

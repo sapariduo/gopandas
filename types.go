@@ -19,4 +19,5 @@ type C interface {
 	Less(C) bool
 	Equal(C) bool
 	NotEqual(C) bool
+	Type() Type
 }

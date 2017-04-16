@@ -81,13 +81,13 @@ import(
 	"fmt"
 )
 
-c := ConfigDataFrame{
-	File: "example.csv"
-	Header: true // Only used only for CSV file. 
-	Sep: ',' // Rune Separator used only for CSV file
+c := &pd.ConfigDataFrame{
+	File: "example.csv",
+	Header: true, // Only used for CSV file. 
+	Sep: ',', // Rune Separator used only for CSV file
 }
 
-df := c.NewDataFrameCSV()
+df := NewDataFrameCSV(c)
 fmt.Println(df)
 ```
 
@@ -144,7 +144,7 @@ With a DataFrame as:
 ```
 
 ```go
-df = df.SelectByIndex(int[0,2])
+df = df.SelectByIndex([]int{0,2})
 fmt.Println(df)
 //produces
 ```

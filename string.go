@@ -2,6 +2,10 @@ package gopandas
 
 type String string
 
+func (String) Type() Type {
+	return STRING
+}
+
 func (s String) Add(c C) C {
 	var ret C
 	switch c.(type) {

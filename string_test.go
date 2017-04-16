@@ -2,6 +2,17 @@ package gopandas
 
 import "testing"
 
+func TestStringType(t *testing.T) {
+	var s String
+
+	switch s.Type() {
+	case STRING:
+		return
+	default:
+		t.Error("Wrong type")
+	}
+}
+
 func TestStringAdd(t *testing.T) {
 	s1 := String("foo")
 	s2 := String("bar")
