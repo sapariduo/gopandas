@@ -6,7 +6,6 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"github.com/olekukonko/tablewriter"
 	"io/ioutil"
 	"log"
 	"os"
@@ -14,6 +13,8 @@ import (
 	"sort"
 	"strconv"
 	"time"
+
+	"github.com/olekukonko/tablewriter"
 )
 
 // NewC if function with create a C interface element wich is contained in a dataframe.
@@ -45,8 +46,7 @@ func NewC(i interface{}) C {
 // Final goal is to have all attributes in private.
 type DataFrame struct {
 	Columns []string
-	Types   map[string]map[Type]int
-	Df      map[string][]C
+	Df      map[string]Series
 	NbLines int
 }
 

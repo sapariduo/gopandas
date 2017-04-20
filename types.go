@@ -21,3 +21,17 @@ type C interface {
 	NotEqual(C) bool
 	Type() Type
 }
+
+type Index interface{}
+type Series map[Index]C
+
+func (s Series) Type() map[Type]int {
+	ret := map[Type]int{}
+	for _, v := range s {
+		if _, ok := ret[v.Type()]; !ok {
+			ret[v.Type()] = 0
+		}
+		ret[v.Type()]++
+	}
+	return ret
+}
