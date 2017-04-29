@@ -45,8 +45,8 @@ type C interface {
 Series are basically maps of values with indices as keys.
 
 ## Initialize series
-Series can be construct with maps or slices of values. Maps are used as input if there is a need to specify the indices of the values. Indices avec empty interfaces so feel free to use what you want. If slices are used the indices will be the positions in the slices of the values.
-Gopandas will convert automatically all types that are compatibles with the section types. 
+Series can be constructed with maps or slices of values. Maps are used as input if there is a need to specify the indices of the values. Indices are empty interfaces so feel free to use what you want. If slices are used the indices will be the positions in the slices of the values.
+Gopandas will convert automatically all types that are compatibles with the gopandas types (see section types). 
 
 ```
 import
