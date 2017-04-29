@@ -27,6 +27,7 @@ go get github.com/fmarmol/gopandas
 # C interface
 All gopandas types implements the C interface
 
+```
 type C interface {
     Add(C) C
     Mul(C) C
@@ -37,6 +38,7 @@ type C interface {
     Equal(C) bool
     NotEqual(C) bool
 }
+```
 
 # Series
 
