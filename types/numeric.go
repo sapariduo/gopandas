@@ -1,4 +1,4 @@
-package gopandas
+package types
 
 type Numeric float64
 

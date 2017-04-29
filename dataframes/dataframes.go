@@ -1,52 +1,28 @@
-package gopandas
+package dataframes
 
 import (
 	//"bufio"
+
 	"bytes"
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
+	"gopandas/series"
+	"gopandas/types"
 	"io/ioutil"
 	"log"
 	"os"
-	"reflect"
-	"sort"
 	"strconv"
 	"time"
 
 	"github.com/olekukonko/tablewriter"
 )
 
-// NewC if function with create a C interface element wich is contained in a dataframe.
-// C can be Numeric to perform mathematical operations, Time to use datetime, String or Nan
-func NewC(i interface{}) C {
-	var ret C
-	switch i.(type) {
-	case float64:
-		ret = Numeric(i.(float64))
-	case int:
-		ret = Numeric(float64(i.(int)))
-	case int64:
-		ret = Numeric(float64(i.(int64)))
-	case time.Time:
-		ret = Time(i.(time.Time))
-	case string:
-		ret = String(i.(string))
-	case Numeric:
-		ret = i.(Numeric)
-	case String:
-		ret = i.(String)
-	default:
-		ret = Nan("NaN")
-	}
-	return ret
-}
-
 // DataFrame is the structure of a dataframe, Data are avaibable with Df attribute
 // Final goal is to have all attributes in private.
 type DataFrame struct {
 	Columns []string
-	Df      map[string]Series
+	Indices []series.Index
+	Df      map[string]series.Series
 	NbLines int
 }
 
@@ -54,6 +30,7 @@ type DataFrame struct {
 type ConfigDataFrame struct {
 	File       string
 	Header     bool
+	Index      bool
 	Sep        rune
 	TimeLayout string
 }
@@ -73,117 +50,74 @@ func convertTo(s string) interface{} {
 	return s
 }
 
-// NewDataFrameJSON is a function to create of a dataframe from a JSON file
-// Json data must be in the format of []map[string]interface{}
-// No more checks are done
-func NewDataFrameJSON(c *ConfigDataFrame) *DataFrame {
-	fd, err := os.Open(c.File)
-	if err != nil {
-		return nil
-	}
-	defer fd.Close()
-	if err != nil {
-		return nil
-	}
-	decoder := json.NewDecoder(fd)
-	var ret []map[string]interface{}
-	err = decoder.Decode(&ret)
-	if err != nil {
-		return nil
-	}
-	df := DataFrame{}
-	df.Df = map[string][]C{}
-	df.Types = map[string]map[Type]int{}
-	df.NbLines = len(ret)
-	for k := range ret[0] {
-		df.Df[k] = make([]C, df.NbLines)
-		df.Types[k] = map[Type]int{}
-		df.Columns = append(df.Columns, k)
-	}
-	for index, r := range ret {
-		for _, col := range df.Columns {
-			_, ok := r[col]
-			if ok == false {
-				fmt.Printf("Error: Columns are not consistent\n")
-				return nil
-			}
-			v := NewC(r[col])
-			t := v.Type()
-			df.Df[col][index] = v
-			_, ok = df.Types[col][t]
-			if ok == false {
-				df.Types[col][t] = 0
-			}
-			df.Types[col][t]++
-		}
-	}
-	return &df
-}
-
 // NewDataFrameCSV is a function to create of a dataframe from a CSV file
 func NewDataFrameCSV(c *ConfigDataFrame) *DataFrame {
 	fd, err := os.Open(c.File)
 	if err != nil {
 		return nil
 	}
+	defer fd.Close()
+
 	df := DataFrame{}
-	df.Df = map[string][]C{}
-	df.Types = map[string]map[Type]int{}
+	df.Df = map[string]series.Series{}
 	reader := csv.NewReader(fd)
 	reader.Comma = c.Sep
 	firstline, err := reader.Read()
 	checkerr(err)
 	lines, err := reader.ReadAll()
 	checkerr(err)
+
+	index := 0
 	if c.Header {
-		df.Columns = firstline
-		for index, col := range df.Columns {
-			df.Df[col] = make([]C, len(lines))
-			df.Types[col] = map[Type]int{}
-			v := NewC(convertTo(lines[0][index]))
-			t := v.Type()
-			df.Df[col][0] = v
-			_, ok := df.Types[col]
-			if ok == false {
-				df.Types[col][t] = 0
-			}
-			df.Types[col][t]++
+		if c.Index {
+			df.Columns = firstline[1:]
+		} else {
+			df.Columns = firstline
 		}
-		df.NbLines++
-		lines = lines[1:]
+		for _, col := range df.Columns {
+			df.Df[col] = series.Series{}
+		}
 	} else {
-		df.Columns = make([]string, len(firstline))
-		for i := 0; i < len(firstline); i++ {
-			col := fmt.Sprintf("%v", i)
-			df.Columns[i] = col
-			df.Df[col] = make([]C, len(lines)+1)
-			df.Types[col] = map[Type]int{}
-			v := NewC(convertTo(firstline[i]))
-			t := v.Type()
-			df.Df[col][0] = v
-			_, ok := df.Types[col][t]
-			if ok == false {
-				df.Types[col][t] = 0
+		if c.Index {
+			df.Columns = make([]string, len(firstline[1:]))
+			df.Indices = append(df.Indices, firstline[0])
+			for i, c := range firstline[1:] {
+				col := fmt.Sprintf("%v", i)
+				df.Columns[i] = col
+				df.Df[col] = series.Series{}
+				df.Df[col][firstline[0]] = types.NewC(convertTo(c))
 			}
-			df.Types[col][t]++
+		} else {
+			df.Columns = make([]string, len(firstline))
+			df.Indices = append(df.Indices, index)
+			for i, c := range firstline {
+				col := fmt.Sprintf("%v", i)
+				df.Columns[i] = col
+				df.Df[col] = series.Series{}
+				df.Df[col][index] = types.NewC(convertTo(c))
+			}
 		}
 		df.NbLines++
+		index++
 	}
-	for nb, line := range lines {
-		for index, col := range df.Columns {
-			v := NewC(convertTo(line[index]))
-			t := v.Type()
-			df.Df[col][nb+1] = v
-			_, ok := df.Types[col]
-			if ok == false {
-				df.Types[col][t] = 0
-			}
-			df.Types[col][t]++
+	for _, line := range lines {
+		if c.Index {
+			df.Indices = append(df.Indices, line[0])
+		} else {
+			df.Indices = append(df.Indices, index)
 		}
+		for icol, col := range df.Columns {
+			if c.Index {
+				v := types.NewC(convertTo(line[icol+1]))
+				df.Df[col][line[0]] = v
+			} else {
+				v := types.NewC(convertTo(line[icol]))
+				df.Df[col][index] = v
+			}
+		}
+		index++
 		df.NbLines++
 	}
-	err = fd.Close()
-	checkerr(err)
 	return &df
 }
 
@@ -195,21 +129,21 @@ func (df *DataFrame) String() string {
 	header := []string{"Index"}
 	header = append(header, df.Columns...)
 	table.SetHeader(header)
-	for i := 0; i < df.NbLines; i++ {
-		l := []string{fmt.Sprintf("%v", i)}
+	for _, index := range df.Indices {
+		l := []string{fmt.Sprintf("%v", index)}
 		for _, col := range df.Columns {
-			l = append(l, fmt.Sprintf("%v", df.Df[col][i]))
+			l = append(l, fmt.Sprintf("%v", df.Df[col][index]))
 		}
 		table.Append(l)
 	}
 	footer := make([]string, len(header))
 	footer[0] = fmt.Sprintf("COUNT:%v", df.NbLines)
 	for i, col := range df.Columns {
-		m := df.Types[col]
+		m := df.Df[col].Type()
 		if len(m) == 0 {
-			log.Panicf("Error Types are not defined for [%v] column\n", col)
+			log.Panicf("Error: Types are not defined for [%v] column\n", col)
 		} else if len(m) > 1 {
-			footer[i+1] = MULTI
+			footer[i+1] = "MULTI"
 		} else {
 			for k := range m {
 				footer[i+1] = string(k)
@@ -229,26 +163,24 @@ func (df *DataFrame) String() string {
 func (df *DataFrame) Select(cols ...string) *DataFrame {
 	dfs := &DataFrame{}
 	dfs.NbLines = df.NbLines
-	dfs.Df = map[string][]C{}
-	dfs.Types = df.Types
+	dfs.Df = map[string]series.Series{}
+	dfs.Indices = df.Indices
 	for _, col := range cols {
-		_, ok := df.Df[col]
-		if ok == false {
+		if _, ok := df.Df[col]; !ok {
 			fmt.Printf("Warning: Column name [%v] doesn't exist\n", col)
 		} else {
 			dfs.Columns = append(dfs.Columns, col)
 			dfs.Df[col] = df.Df[col]
-			dfs.Types[col] = df.Types[col]
 		}
 	}
 	if len(dfs.Columns) != 0 {
 		return dfs
 	}
-
 	return nil
 
 }
 
+/*
 // Copy function makes a full copy of a dataframe
 func (df *DataFrame) Copy() *DataFrame {
 	dfs := &DataFrame{}
@@ -568,7 +500,7 @@ func (df *DataFrame) Apply(f func(c C) C) {
 		}
 	}
 }
-
+*/
 func checkerr(e error) {
 	if e != nil {
 		log.Panic(e)

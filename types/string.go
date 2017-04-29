@@ -1,4 +1,6 @@
-package gopandas
+package types
+
+import "fmt"
 
 type String string
 
@@ -73,4 +75,8 @@ func (s String) NotEqual(c C) bool {
 		ret = false
 	}
 	return ret
+}
+
+func (s String) String() string {
+	return fmt.Sprintf("\"%s\"", string(s))
 }
