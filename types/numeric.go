@@ -14,6 +14,17 @@ func (n Numeric) Add(c C) C {
 	return ret
 }
 
+func (n Numeric) Sub(c C) C {
+	var ret C
+	switch c.(type) {
+	case Numeric:
+		ret = Numeric(n - c.(Numeric))
+	default:
+		ret = n
+	}
+	return ret
+}
+
 func (n Numeric) Mul(c C) C {
 	var ret C
 

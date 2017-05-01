@@ -12,6 +12,10 @@ func (t Time) Add(c C) C {
 	return t
 }
 
+func (t Time) Sub(c C) C {
+	return t
+}
+
 func (t Time) Mul(c C) C {
 	return t
 }

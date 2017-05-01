@@ -30,6 +30,7 @@ All gopandas types implements the C interface
 ```
 type C interface {
     Add(C) C
+    Sub(C) C
     Mul(C) C
     Div(C) C
     Mod(C) C
@@ -44,6 +45,15 @@ type C interface {
 
 Series are basically maps of values with indices as keys.
 
+** With series you can use :**
+
+- Min/Max
+- Sum/Mean
+- Add/Sub/Mul/Div/Mod between 2 series
+- Get the values
+- Get the indices
+- Get the number of occurences for each value
+
 ## Initialize series
 Series can be constructed with maps or slices of values. Maps are used as input if there is a need to specify the indices of the values. Indices are empty interfaces so feel free to use what you want. If slices are used the indices will be the positions in the slices of the values.
 Gopandas will convert automatically all types that are compatibles with the gopandas types (see section types). 
@@ -56,8 +66,8 @@ import
 )
 
 func main() {
-    s1 := series.NewSeries([]int{1,2,3})
-    s2 := series.NewSeries(map[series.Index]interface{}{"one":1, 2:"two"})
+    s1 := series.New([]int{1,2,3})
+    s2 := series.New(map[series.Index]interface{}{"one":1, 2:"two"})
     fmt.Print(s1)
     fmt.Print(s2)
 }
@@ -81,7 +91,7 @@ map[string:1 numeric:1]
 
 - You can have the number of occurences by values inside a series with ValuesCount method
 ```
-fmt.Println(series.NewSeries([]float64{1.1,1.2,1.3,1.4,1.3,1.2}).ValuesCount())
+fmt.Println(series.New([]float64{1.1,1.2,1.3,1.4,1.3,1.2}).ValuesCount())
 //output:
 map[1.1:1 1.3:2 1.4:1 1.2:2]
 ```
@@ -91,13 +101,27 @@ a new series with values modified by the function:
 
 ```
 fmt.Print(
-    series.NewSeries([]float64{1.1, 1.2}).Apply(
+    series.New([]float64{1.1, 1.2}).Apply(
         func(c types.C) types.C {
             return c.Add(types.Numeric(1))
         }),
 )
 //output:
 Series:{0:2.1, 1:2.2}
+```
+
+- You can also do basic operations between 2 series as for example:
+```
+fmt.Print(series.New([]int{1,2,3}).Sub(series.New([]int{1,2,3})))
+
+//ouput:
+Series:{0:0, 1:0, 2:0}
+```
+
+- You can calculate Sum and Mean of a series:
+```
+sum := s1.Sum()
+mean := s1.Mean()
 ```
 
 # Types

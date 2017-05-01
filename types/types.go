@@ -3,7 +3,15 @@ package types
 import "time"
 
 type Type string
+type Operator string
 
+const (
+	ADD Operator = "+"
+	SUB          = "-"
+	MUL          = "*"
+	DIV          = "/"
+	MOD          = "%"
+)
 const (
 	NUMERIC Type = "numeric"
 	TIME         = "time"
@@ -14,6 +22,7 @@ const (
 
 type C interface {
 	Add(C) C
+	Sub(C) C
 	Mul(C) C
 	Div(C) C
 	Mod(C) C

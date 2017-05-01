@@ -14,13 +14,28 @@ type Index interface{}
 type Series map[Index]types.C
 
 // Creates a new serie by passing map or slice
-func NewSeries(values interface{}) Series {
+func New(values interface{}) Series {
 	ret := Series{}
 
 	switch values.(type) {
 	case map[Index]interface{}:
 		for k, v := range values.(map[Index]interface{}) {
 			ret[k] = types.NewC(v)
+		}
+		return ret
+	case map[Index]int:
+		for k, v := range values.(map[Index]int) {
+			ret[k] = types.Numeric(v)
+		}
+		return ret
+	case map[Index]float64:
+		for k, v := range values.(map[Index]float64) {
+			ret[k] = types.Numeric(v)
+		}
+		return ret
+	case map[Index]string:
+		for k, v := range values.(map[Index]string) {
+			ret[k] = types.String(v)
 		}
 		return ret
 	case []interface{}:
@@ -145,4 +160,116 @@ func (s Series) Values() []types.C {
 		i++
 	}
 	return ret
+}
+
+func (s1 Series) op(s2 Series, op types.Operator) Series {
+	if s1.Len() != s2.Len() {
+		return nil
+	}
+	for k := range s1 {
+		if _, ok := s2[k]; !ok {
+			return nil
+		}
+	}
+	for k := range s2 {
+		if _, ok := s1[k]; !ok {
+			return nil
+		}
+	}
+	ret := Series{}
+	switch op {
+	case types.ADD:
+		for k := range s1 {
+			ret[k] = s1[k].Add(s2[k])
+		}
+	case types.MUL:
+		for k := range s1 {
+			ret[k] = s1[k].Mul(s2[k])
+		}
+	case types.DIV:
+		for k := range s1 {
+			ret[k] = s1[k].Div(s2[k])
+		}
+	case types.MOD:
+		for k := range s1 {
+			ret[k] = s1[k].Mod(s2[k])
+		}
+	case types.SUB:
+		for k := range s1 {
+			ret[k] = s1[k].Sub(s2[k])
+		}
+	default:
+		return nil
+	}
+	return ret
+
+}
+
+func (s1 Series) Add(s2 Series) Series {
+	return s1.op(s2, types.ADD)
+}
+func (s1 Series) Sub(s2 Series) Series {
+	return s1.op(s2, types.SUB)
+}
+func (s1 Series) Mul(s2 Series) Series {
+	return s1.op(s2, types.MUL)
+}
+func (s1 Series) Div(s2 Series) Series {
+	return s1.op(s2, types.DIV)
+}
+func (s1 Series) Mod(s2 Series) Series {
+	return s1.op(s2, types.MOD)
+}
+
+// Basic implementation of max
+func (s Series) Max() types.C {
+	i := true
+	var max types.C
+	for _, v := range s {
+		if i {
+			max = v
+			i = false
+		} else {
+			if max.Less(v) {
+				max = v
+			}
+		}
+	}
+	return max
+}
+
+// Basic implementation of min
+func (s Series) Min() types.C {
+	i := true
+	var min types.C
+	for _, v := range s {
+		if i {
+			min = v
+			i = false
+		} else {
+			if min.Great(v) {
+				min = v
+			}
+		}
+	}
+	return min
+}
+
+func (s Series) Sum() types.C {
+	i := true
+	var sum types.C
+	for _, v := range s {
+		if i {
+			sum = v
+			i = false
+		} else {
+			sum = sum.Add(v)
+		}
+	}
+	return sum
+}
+
+func (s Series) Mean() types.C {
+	sum := s.Sum()
+	return sum.Div(types.Numeric(s.Len()))
 }

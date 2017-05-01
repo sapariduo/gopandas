@@ -13,6 +13,10 @@ func (n Nan) Add(c C) C {
 	return n
 }
 
+func (n Nan) Sub(c C) C {
+	return n
+}
+
 func (n Nan) Mul(c C) C {
 	return n
 }

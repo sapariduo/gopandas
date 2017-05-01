@@ -17,6 +17,10 @@ func (s String) Add(c C) C {
 	return ret
 }
 
+func (s String) Sub(c C) C {
+	return s
+}
+
 func (s String) Mul(c C) C {
 	return s
 }

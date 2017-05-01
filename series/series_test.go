@@ -5,12 +5,12 @@ import (
 	"testing"
 )
 
-func TestNewSeries(t *testing.T) {
-	s := NewSeries(1)
+func TestNew(t *testing.T) {
+	s := New(1)
 	if s != nil {
 		t.Error("Nop")
 	}
-	s = NewSeries([]int{1, 2, 3})
+	s = New([]int{1, 2, 3})
 	if s == nil {
 		t.Error("Nop")
 	}
@@ -37,8 +37,8 @@ func TestSeriesType(t *testing.T) {
 }
 
 func TestEqual(t *testing.T) {
-	s1 := NewSeries([]int{1, 2, 3})
-	s2 := NewSeries([]int{1, 2})
+	s1 := New([]int{1, 2, 3})
+	s2 := New([]int{1, 2})
 
 	if s1.Equal(s2) != s2.Equal(s1) {
 		t.Error("Bug")
@@ -49,11 +49,11 @@ func TestEqual(t *testing.T) {
 }
 
 func TestApply(t *testing.T) {
-	s1 := NewSeries([]int{1, 2, 3, 4})
+	s1 := New([]int{1, 2, 3, 4})
 	s2 := s1.Apply(func(c types.C) types.C {
 		return c.Add(types.Numeric(1))
 	})
-	if !s2.Equal(NewSeries([]int{2, 3, 4, 5})) {
+	if !s2.Equal(New([]int{2, 3, 4, 5})) {
 		t.Error("Not equal")
 	}
 }
@@ -81,5 +81,60 @@ func TestSeriesValuesCount(t *testing.T) {
 			t.Errorf("Error: %d vs %d", counts[test.c], test.value)
 
 		}
+	}
+}
+
+func TestAddSub(t *testing.T) {
+	s1 := New([]int{1, 2, 3})
+	s2 := New([]int{-1, -2, -3})
+	s3 := New([]int{0, 0, 0})
+
+	if !s1.Add(s2).Equal(s3) {
+		t.Error("Error Add")
+	}
+	if s := New([]string{"1", "2", "3"}).Add(New(map[Index]int{1: 1, 2: 2, 3: 3})); s != nil {
+		t.Error("Error Add", s)
+	}
+	if !s1.Sub(s3).Equal(s1) {
+		t.Error("Error Sub")
+	}
+
+}
+func TestMulDivMod(t *testing.T) {
+	s1 := New([]int{1, 1, 1})
+	s2 := New([]int{0, 0, 0})
+	s3 := New([]int{1, 2, 3})
+
+	if !s1.Add(s1).Div(s1).Equal(New([]int{2, 2, 2})) {
+		t.Error("Error Div")
+	}
+	if !s1.Mul(s2).Equal(s2.Mul(s1)) {
+		t.Error("Error mul")
+	}
+	if !s3.Mul(s3).Div(s3).Equal(s3) {
+		t.Error("Error mul, div")
+	}
+}
+
+func TestMinMax(t *testing.T) {
+	s := New([]float64{1.1, 2, 3, 4, -1, -2})
+
+	if s.Max() != types.Numeric(4) {
+		t.Error("Error max")
+	}
+	if s.Min() != types.Numeric(-2) {
+		t.Error("Error min")
+	}
+}
+
+func TestSumMean(t *testing.T) {
+	s := New([]int{1, 2, 3})
+
+	if s.Sum().NotEqual(types.Numeric(6)) {
+		t.Error("Error Sum")
+	}
+
+	if s.Mean().NotEqual(types.Numeric(2)) {
+		t.Error("Error Mean")
 	}
 }
