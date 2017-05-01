@@ -45,7 +45,7 @@ type C interface {
 
 Series are basically maps of values with indices as keys.
 
-** With series you can use :**
+**With series you can use :**
 
 - Min/Max
 - Sum/Mean
