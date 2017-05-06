@@ -16,14 +16,34 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestSeriesType(t *testing.T) {
-	s := Series{
-		0:      types.Numeric(1),
-		1:      types.String("un"),
-		"deux": types.Nan("Nan"),
-		3:      types.Numeric(2),
+func TestDel(t *testing.T) {
+	s := New(map[Index]int{"one": 0, "two": 1, "three": 2})
+	err := s.Del(3)
+	if err == nil {
+		t.Error("Nop")
 	}
-	st := s.Type()
+	err = s.Del("two")
+	if err != nil || !s.Equal(New(map[Index]int{"three": 2, "one": 0})) {
+		t.Error("Nop")
+	}
+	s = New(map[Index]int{"one": 0, "two": 1, "three": 2})
+	err = s.Del("one")
+	if err != nil {
+		t.Error("Nop")
+	}
+	if !s.Equal(New(map[Index]int{"three": 2, "two": 1})) {
+		t.Error("Nop")
+	}
+}
+
+func TestSeriesTypes(t *testing.T) {
+	s := New(map[Index]interface{}{
+		0:     1,
+		1:     "one",
+		"two": types.Nan("Nan"),
+		3:     2,
+	})
+	st := s.Types()
 
 	if st[types.NUMERIC] != 2 {
 		t.Error("NUMERIC type should be 2 occurences")
@@ -33,6 +53,17 @@ func TestSeriesType(t *testing.T) {
 	}
 	if st[types.NAN] != 1 {
 		t.Error("NAN type should be 1 occurence")
+	}
+}
+
+func TestSeriesType(t *testing.T) {
+	s := New([]int{1, 2, 3})
+	if s.Type() != types.NUMERIC {
+		t.Errorf("Should be NUMERIC vs %v, details:%v", s.Type(), s.Types())
+	}
+	s = New([]interface{}{1, "one"})
+	if s.Type() != types.MULTI {
+		t.Errorf("Should be MULTI vs %v, details:%v", s.Type(), s.Types())
 	}
 }
 
@@ -66,19 +97,19 @@ func TestSeriesValuesCount(t *testing.T) {
 		{c: types.String("un"), value: 1},
 		{c: types.Numeric(1), value: 2},
 		{c: types.Numeric(2), value: 1},
-		{c: types.Nan("Nan"), value: 1},
+		{c: types.NewNan(), value: 1},
 	}
-	s := Series{
-		0:      types.Numeric(1),
-		5:      types.Numeric(1),
-		1:      types.String("un"),
-		"deux": types.Nan("Nan"),
-		3:      types.Numeric(2),
-	}
+	s := New(map[Index]interface{}{
+		0:      1,
+		5:      1,
+		1:      "un",
+		"deux": types.NewNan(),
+		3:      2,
+	})
 	counts := s.ValuesCount()
 	for _, test := range tests {
 		if counts[test.c] != test.value {
-			t.Errorf("Error: %d vs %d", counts[test.c], test.value)
+			t.Errorf("Error: %v:%d vs %v:%d", test.c, counts[test.c], test.c, test.value)
 
 		}
 	}
@@ -114,6 +145,19 @@ func TestMulDivMod(t *testing.T) {
 	if !s3.Mul(s3).Div(s3).Equal(s3) {
 		t.Error("Error mul, div")
 	}
+}
+
+func TestSort(t *testing.T) {
+	s := New(map[Index]int{0: 3, 1: 1, 2: 2})
+	s.Sort()
+	if !s.Equal(New(map[Index]int{1: 1, 2: 2, 0: 3})) {
+		t.Errorf("Nop, %v", s)
+	}
+	s.Reverse()
+	if !s.Equal(New(map[Index]int{0: 3, 2: 2, 1: 1})) {
+		t.Errorf("Nop, %v", s)
+	}
+
 }
 
 func TestMinMax(t *testing.T) {

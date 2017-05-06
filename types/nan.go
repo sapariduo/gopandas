@@ -2,7 +2,7 @@ package types
 
 type Nan string
 
-func newNan() C {
+func NewNan() C {
 	return Nan("Nan")
 }
 func (Nan) Type() Type {

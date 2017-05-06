@@ -3,6 +3,7 @@ package series
 import (
 	"fmt"
 	"gopandas/types"
+	"sort"
 	"strings"
 	"time"
 )
@@ -11,69 +12,104 @@ import (
 type Index interface{}
 
 // Series Type
-type Series map[Index]types.C
+//type Series map[Index]types.C
+
+type Series struct {
+	Series  map[Index]types.C
+	Indices []Index
+}
+
+func (s Series) Get(i Index) (v types.C, ok bool) {
+	v, ok = s.Series[i]
+	return
+}
+
+func (s *Series) Set(i Index, v types.C) error {
+	if _, ok := s.Get(i); !ok {
+		s.Indices = append(s.Indices, i)
+		s.Series[i] = v
+		return nil
+	} else {
+		return fmt.Errorf("Index already set")
+	}
+}
+
+// Returns the position in the slice of the Index i
+func (s *Series) getIndex(i Index) (int, error) {
+	for j, index := range s.Indices {
+		if i == index {
+			return j, nil
+		}
+	}
+	return -1, fmt.Errorf("Index %v doesn't exist", i)
+}
+
+func (s *Series) Del(i Index) error {
+	index_i, err := s.getIndex(i)
+	if err != nil {
+		return err
+	}
+	if index_i == s.Len()-1 {
+		s.Indices = s.Indices[:index_i]
+	} else {
+		s.Indices = append(s.Indices[:index_i], s.Indices[index_i+1:]...)
+	}
+	delete(s.Series, i)
+	return nil
+}
 
 // Creates a new serie by passing map or slice
-func New(values interface{}) Series {
-	ret := Series{}
+func New(values interface{}) *Series {
+	ret := &Series{Series: map[Index]types.C{}, Indices: []Index{}}
 
 	switch values.(type) {
 	case map[Index]interface{}:
 		for k, v := range values.(map[Index]interface{}) {
-			ret[k] = types.NewC(v)
+			ret.Set(k, types.NewC(v))
 		}
-		return ret
 	case map[Index]int:
 		for k, v := range values.(map[Index]int) {
-			ret[k] = types.Numeric(v)
+			ret.Set(k, types.Numeric(v))
 		}
-		return ret
 	case map[Index]float64:
 		for k, v := range values.(map[Index]float64) {
-			ret[k] = types.Numeric(v)
+			ret.Set(k, types.Numeric(v))
 		}
-		return ret
 	case map[Index]string:
 		for k, v := range values.(map[Index]string) {
-			ret[k] = types.String(v)
+			ret.Set(k, types.String(v))
 		}
-		return ret
 	case []interface{}:
 		for k, v := range values.([]interface{}) {
-			ret[k] = types.NewC(v)
+			ret.Set(k, types.NewC(v))
 		}
-		return ret
 	case []int:
 		for k, v := range values.([]int) {
-			ret[k] = types.Numeric(v)
+			ret.Set(k, types.Numeric(v))
 		}
-		return ret
 	case []float64:
 		for k, v := range values.([]float64) {
-			ret[k] = types.Numeric(v)
+			ret.Set(k, types.Numeric(v))
 		}
-		return ret
 	case []string:
 		for k, v := range values.([]string) {
-			ret[k] = types.String(v)
+			ret.Set(k, types.String(v))
 		}
-		return ret
 	case []time.Time:
 		for k, v := range values.([]time.Time) {
-			ret[k] = types.Time(v)
+			ret.Set(k, types.Time(v))
 		}
-		return ret
 	default:
 		fmt.Println("format of series not recognized: use a map or a slice")
 		return nil
-
 	}
+	return ret
 }
 
 // Returns the summary of each type inside the series
-func (s Series) Type() map[types.Type]int {
+func (s *Series) Types() map[types.Type]int {
 	ret := map[types.Type]int{}
-	for _, v := range s {
+	for _, v := range s.Series {
 		if _, ok := ret[v.Type()]; !ok {
 			ret[v.Type()] = 0
 		}
@@ -82,16 +118,31 @@ func (s Series) Type() map[types.Type]int {
 	return ret
 }
 
+// Return the type of series
+func (s *Series) Type() types.Type {
+	res := s.Types()
+	var t types.Type
+
+	if len(res) > 1 {
+		t = types.MULTI
+	} else {
+		for k := range res {
+			t = k
+		}
+	}
+	return t
+}
+
 // Returns the length of the series
-func (s Series) Len() int {
-	return len(s)
+func (s *Series) Len() int {
+	return len(s.Series)
 }
 
 // Apply a function on a series and returns a new one
-func (s Series) Apply(f func(c types.C) types.C) Series {
-	ret := Series{}
-	for k, v := range s {
-		ret[k] = f(v)
+func (s *Series) Apply(f func(c types.C) types.C) *Series {
+	ret := &Series{Series: map[Index]types.C{}, Indices: []Index{}}
+	for k, v := range s.Series {
+		ret.Set(k, f(v))
 	}
 	return ret
 }
@@ -100,7 +151,7 @@ func (s Series) Apply(f func(c types.C) types.C) Series {
 func (s Series) ValuesCount() map[types.C]int {
 	ret := map[types.C]int{}
 
-	for _, c := range s {
+	for _, c := range s.Series {
 		if _, ok := ret[c]; !ok {
 			ret[c] = 0
 		}
@@ -109,11 +160,15 @@ func (s Series) ValuesCount() map[types.C]int {
 	return ret
 }
 
-func (s Series) String() string {
+func (s *Series) String() string {
 	ret := "Series:{"
 	elements := []string{}
-	for k, v := range s {
-		elements = append(elements, fmt.Sprintf("%v:%v", k, v))
+	for _, index := range s.Indices {
+		if v, ok := s.Get(index); !ok {
+			panic(fmt.Errorf("critical error"))
+		} else {
+			elements = append(elements, fmt.Sprintf("%v:%v", index, v))
+		}
 	}
 	ret += strings.Join(elements, ", ")
 	ret += "}\n"
@@ -121,18 +176,18 @@ func (s Series) String() string {
 }
 
 // Compare if two series are equal
-func (s1 Series) Equal(s2 Series) bool {
+func (s1 *Series) Equal(s2 *Series) bool {
 	if s1.Len() != s2.Len() {
 		return false
 	}
-	for k, v1 := range s1 {
-		v2, ok := s2[k]
+	for k, v1 := range s1.Series {
+		v2, ok := s2.Get(k)
 		if !ok || (v1 != v2) {
 			return false
 		}
 	}
-	for k, v2 := range s2 {
-		v1, ok := s1[k]
+	for k, v2 := range s2.Series {
+		v1, ok := s1.Get(k)
 		if !ok || (v1 != v2) {
 			return false
 		}
@@ -141,91 +196,100 @@ func (s1 Series) Equal(s2 Series) bool {
 }
 
 // Returns a slice of series's indices
-func (s Series) Indices() []Index {
-	ret := make([]Index, s.Len())
-	i := 0
-	for k := range s {
-		ret[i] = k
-		i++
-	}
-	return ret
+func (s *Series) GetIndices() []Index {
+	return s.Indices
 }
 
 // Returns a slice of series's values
-func (s Series) Values() []types.C {
+func (s *Series) GetValues() []types.C {
 	ret := make([]types.C, s.Len())
-	i := 0
-	for _, v := range s {
-		ret[i] = v
-		i++
+	for i, index := range s.Indices {
+		if v, ok := s.Get(index); !ok {
+			panic(fmt.Errorf("Critical error"))
+		} else {
+			ret[i] = v
+		}
 	}
 	return ret
 }
 
-func (s1 Series) op(s2 Series, op types.Operator) Series {
+func (s1 *Series) op(s2 *Series, op types.Operator) *Series {
 	if s1.Len() != s2.Len() {
 		return nil
 	}
-	for k := range s1 {
-		if _, ok := s2[k]; !ok {
+	for k := range s1.Indices {
+		if _, ok := s2.Get(k); !ok {
 			return nil
 		}
 	}
-	for k := range s2 {
-		if _, ok := s1[k]; !ok {
+	for k := range s2.Indices {
+		if _, ok := s1.Get(k); !ok {
 			return nil
 		}
 	}
-	ret := Series{}
-	switch op {
-	case types.ADD:
-		for k := range s1 {
-			ret[k] = s1[k].Add(s2[k])
+	ret := &Series{Series: map[Index]types.C{}, Indices: []Index{}}
+
+	for _, index := range s1.Indices {
+		v1, _ := s1.Get(index)
+		v2, _ := s2.Get(index)
+		switch op {
+		case types.ADD:
+			ret.Set(index, v1.Add(v2))
+		case types.MUL:
+			ret.Set(index, v1.Mul(v2))
+		case types.DIV:
+			ret.Set(index, v1.Div(v2))
+		case types.MOD:
+			ret.Set(index, v1.Mod(v2))
+		case types.SUB:
+			ret.Set(index, v1.Sub(v2))
+		default:
+			return nil
 		}
-	case types.MUL:
-		for k := range s1 {
-			ret[k] = s1[k].Mul(s2[k])
-		}
-	case types.DIV:
-		for k := range s1 {
-			ret[k] = s1[k].Div(s2[k])
-		}
-	case types.MOD:
-		for k := range s1 {
-			ret[k] = s1[k].Mod(s2[k])
-		}
-	case types.SUB:
-		for k := range s1 {
-			ret[k] = s1[k].Sub(s2[k])
-		}
-	default:
-		return nil
 	}
 	return ret
-
 }
 
-func (s1 Series) Add(s2 Series) Series {
+func (s1 *Series) Add(s2 *Series) *Series {
 	return s1.op(s2, types.ADD)
 }
-func (s1 Series) Sub(s2 Series) Series {
+func (s1 *Series) Sub(s2 *Series) *Series {
 	return s1.op(s2, types.SUB)
 }
-func (s1 Series) Mul(s2 Series) Series {
+func (s1 *Series) Mul(s2 *Series) *Series {
 	return s1.op(s2, types.MUL)
 }
-func (s1 Series) Div(s2 Series) Series {
+func (s1 *Series) Div(s2 *Series) *Series {
 	return s1.op(s2, types.DIV)
 }
-func (s1 Series) Mod(s2 Series) Series {
+func (s1 *Series) Mod(s2 *Series) *Series {
 	return s1.op(s2, types.MOD)
+}
+
+func (s *Series) Swap(i, j int) {
+	s.Indices[i], s.Indices[j] = s.Indices[j], s.Indices[i]
+}
+
+func (s *Series) Less(i, j int) bool {
+	index_i, index_j := s.Indices[i], s.Indices[j]
+	return s.Series[index_i].Less(s.Series[index_j])
+}
+
+//Sort by values in ascending order
+func (s *Series) Sort() {
+	sort.Sort(s)
+}
+
+//Sort by values in descending order
+func (s *Series) Reverse() {
+	sort.Reverse(s)
 }
 
 // Basic implementation of max
 func (s Series) Max() types.C {
 	i := true
 	var max types.C
-	for _, v := range s {
+	for _, v := range s.Series {
 		if i {
 			max = v
 			i = false
@@ -242,7 +306,7 @@ func (s Series) Max() types.C {
 func (s Series) Min() types.C {
 	i := true
 	var min types.C
-	for _, v := range s {
+	for _, v := range s.Series {
 		if i {
 			min = v
 			i = false
@@ -255,10 +319,11 @@ func (s Series) Min() types.C {
 	return min
 }
 
+// Returns the sum of values
 func (s Series) Sum() types.C {
 	i := true
 	var sum types.C
-	for _, v := range s {
+	for _, v := range s.Series {
 		if i {
 			sum = v
 			i = false
@@ -269,6 +334,7 @@ func (s Series) Sum() types.C {
 	return sum
 }
 
+// Returns the mean of values
 func (s Series) Mean() types.C {
 	sum := s.Sum()
 	return sum.Div(types.Numeric(s.Len()))

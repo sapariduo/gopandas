@@ -49,7 +49,7 @@ func NewC(i interface{}) C {
 	case String:
 		ret = i.(String)
 	default:
-		ret = Nan("NaN")
+		ret = NewNan()
 	}
 	return ret
 }

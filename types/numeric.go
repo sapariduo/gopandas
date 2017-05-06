@@ -43,7 +43,7 @@ func (n Numeric) Div(c C) C {
 	switch c.(type) {
 	case Numeric:
 		if c.(Numeric) == 0.0 {
-			ret = newNan()
+			ret = NewNan()
 		} else {
 			ret = Numeric(n / c.(Numeric))
 		}
