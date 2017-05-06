@@ -54,6 +54,7 @@ Series are basically simple ordered maps of values with indices as keys
 - Get the values
 - Get the indices
 - Get the number of occurences for each value
+- Types/Type
 
 ## Initialize series
 Series can be constructed with maps or slices of values. Maps are used as input if there is a need to specify the indices of the values. Indices are empty interfaces so feel free to use what you want. If slices are used the indices will be the positions in the slices of the values.
@@ -80,14 +81,23 @@ Series:{one:1, 2:two}
 
 ## Usage of series
 
-- You can check types insides a series with Type method, this will give you a simple summary
+- You can check types insides a series with Types method, this will give you a simple summary
 
 ```
-fmt.Println(s1.Type())
-fmt.Println(s2.Type())
+fmt.Println(s1.Types())
+fmt.Println(s2.Types())
 //output:
 map[numeric:3]
 map[string:1 numeric:1]
+```
+
+If you want just the unique result of the type of the series, use the Type method:
+```
+fmt.Println(s1.Type())
+fmt.Println(s2.Type())
+//outpout:
+numeric
+multiple
 ```
 
 - You can have the number of occurences by values inside a series with ValuesCount method
