@@ -43,12 +43,13 @@ type C interface {
 
 # Series
 
-Series are basically maps of values with indices as keys.
+Series are basically simple ordered maps of values with indices as keys
 
 **With series you can use :**
 
 - Min/Max
 - Sum/Mean
+- Sort/Reverse
 - Add/Sub/Mul/Div/Mod between 2 series
 - Get the values
 - Get the indices
@@ -122,6 +123,18 @@ Series:{0:0, 1:0, 2:0}
 ```
 sum := s1.Sum()
 mean := s1.Mean()
+```
+
+- You can sort the series either by ascending or descending order. The Sort and Reverse methods modifies series instead of returning a new one
+```
+s := series.New([]float64{1.1, 1.2, -1.0})
+s.Sort()
+fmt.Print(s)
+s.Reverse()
+fmt.Print(s)
+//output
+Series:{2:-1, 0:1.1, 1:1.2}
+Series:{1:1.2, 0:1.1, 2:-1}
 ```
 
 # Types

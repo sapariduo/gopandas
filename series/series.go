@@ -282,7 +282,7 @@ func (s *Series) Sort() {
 
 //Sort by values in descending order
 func (s *Series) Reverse() {
-	sort.Reverse(s)
+	sort.Sort(sort.Reverse(s))
 }
 
 // Basic implementation of max
