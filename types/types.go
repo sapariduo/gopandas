@@ -36,6 +36,8 @@ type C interface {
 func NewC(i interface{}) C {
 	var ret C
 	switch i.(type) {
+	case C:
+		ret = i.(C)
 	case float64:
 		ret = Numeric(i.(float64))
 	case int:

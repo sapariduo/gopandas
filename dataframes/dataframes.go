@@ -1,8 +1,6 @@
 package dataframes
 
 import (
-	//"bufio"
-
 	"bytes"
 	"encoding/csv"
 	"fmt"
@@ -22,7 +20,7 @@ import (
 type DataFrame struct {
 	Columns []string
 	Indices []series.Index
-	Df      map[string]series.Series
+	Df      map[string]*series.Series
 	NbLines int
 }
 
@@ -50,16 +48,96 @@ func convertTo(s string) interface{} {
 	return s
 }
 
-// NewDataFrameCSV is a function to create of a dataframe from a CSV file
-func NewDataFrameCSV(c *ConfigDataFrame) *DataFrame {
+func (df *DataFrame) Len() int {
+	if df == nil {
+		fmt.Println("DataFrame is nil")
+		return -1
+	}
+	return len(df.Indices)
+}
+
+func (df *DataFrame) isEmpty() bool {
+	if len(df.Columns) == 0 && df.Len() == 0 {
+		return true
+	}
+	return false
+}
+
+func (df *DataFrame) AddSeries(col string, s *series.Series) error {
+	if df == nil {
+		return fmt.Errorf("DataFrame is nil")
+	}
+	if df.isEmpty() {
+		df.Columns = append(df.Columns, col)
+		df.Df[col] = s
+		df.Indices = s.GetIndices()
+		df.NbLines = s.Len()
+		return nil
+	}
+	for _, c := range df.Columns {
+		if c == col {
+			return fmt.Errorf("Error: Column %v already exists", col)
+		}
+	}
+	if s.Len() != df.Len() {
+		return fmt.Errorf("Error: lengths are not compatible")
+	}
+	for _, index := range df.Indices {
+		if _, ok := s.Get(index); !ok {
+			return fmt.Errorf("Error: Index: %v doesn't exist in series", index)
+		}
+	}
+	df.Columns = append(df.Columns, col)
+	df.Df[col] = s
+	return nil
+}
+
+// Create a empty dataframe
+func NewEmpty() *DataFrame {
+	return &DataFrame{Columns: []string{}, Indices: []series.Index{}, Df: map[string]*series.Series{}, NbLines: 0}
+}
+
+func New(columns []string, ss []*series.Series) *DataFrame {
+	if len(columns) != len(ss) {
+		fmt.Println("Error: lenght of columns is not equal to length of series")
+		return nil
+	}
+	df := NewEmpty()
+	for i, c := range columns {
+		if err := df.AddSeries(c, ss[i]); err != nil {
+			return nil
+		}
+	}
+	return df
+}
+
+func (df *DataFrame) Describe() *DataFrame {
+	if df == nil {
+		return nil
+	}
+	ret := NewEmpty()
+	for _, c := range df.Columns {
+		ret.AddSeries(c, series.New(map[series.Index]interface{}{
+			"min":   df.Df[c].Min(),
+			"max":   df.Df[c].Max(),
+			"mean":  df.Df[c].Mean(),
+			"count": df.Len(),
+		}))
+	}
+	return ret
+}
+
+// NewFromCSV is a function to create of a dataframe from a CSV file
+func NewFromCSV(c *ConfigDataFrame) *DataFrame {
 	fd, err := os.Open(c.File)
 	if err != nil {
+		log.Println(err)
 		return nil
 	}
 	defer fd.Close()
 
 	df := DataFrame{}
-	df.Df = map[string]series.Series{}
+	df.Df = map[string]*series.Series{}
 	reader := csv.NewReader(fd)
 	reader.Comma = c.Sep
 	firstline, err := reader.Read()
@@ -75,7 +153,7 @@ func NewDataFrameCSV(c *ConfigDataFrame) *DataFrame {
 			df.Columns = firstline
 		}
 		for _, col := range df.Columns {
-			df.Df[col] = series.Series{}
+			df.Df[col] = series.NewEmpty()
 		}
 	} else {
 		if c.Index {
@@ -84,8 +162,8 @@ func NewDataFrameCSV(c *ConfigDataFrame) *DataFrame {
 			for i, c := range firstline[1:] {
 				col := fmt.Sprintf("%v", i)
 				df.Columns[i] = col
-				df.Df[col] = series.Series{}
-				df.Df[col][firstline[0]] = types.NewC(convertTo(c))
+				df.Df[col] = series.NewEmpty()
+				df.Df[col].Set(firstline[0], types.NewC(convertTo(c)))
 			}
 		} else {
 			df.Columns = make([]string, len(firstline))
@@ -93,8 +171,8 @@ func NewDataFrameCSV(c *ConfigDataFrame) *DataFrame {
 			for i, c := range firstline {
 				col := fmt.Sprintf("%v", i)
 				df.Columns[i] = col
-				df.Df[col] = series.Series{}
-				df.Df[col][index] = types.NewC(convertTo(c))
+				df.Df[col] = series.NewEmpty()
+				df.Df[col].Set(index, types.NewC(convertTo(c)))
 			}
 		}
 		df.NbLines++
@@ -109,10 +187,10 @@ func NewDataFrameCSV(c *ConfigDataFrame) *DataFrame {
 		for icol, col := range df.Columns {
 			if c.Index {
 				v := types.NewC(convertTo(line[icol+1]))
-				df.Df[col][line[0]] = v
+				df.Df[col].Set(line[0], v)
 			} else {
 				v := types.NewC(convertTo(line[icol]))
-				df.Df[col][index] = v
+				df.Df[col].Set(index, v)
 			}
 		}
 		index++
@@ -122,6 +200,9 @@ func NewDataFrameCSV(c *ConfigDataFrame) *DataFrame {
 }
 
 func (df *DataFrame) String() string {
+	if df == nil {
+		return "Nil dataFrame"
+	}
 	b := &bytes.Buffer{}
 	table := tablewriter.NewWriter(b)
 	table.SetAlignment(tablewriter.ALIGN_RIGHT)
@@ -132,7 +213,8 @@ func (df *DataFrame) String() string {
 	for _, index := range df.Indices {
 		l := []string{fmt.Sprintf("%v", index)}
 		for _, col := range df.Columns {
-			l = append(l, fmt.Sprintf("%v", df.Df[col][index]))
+			v, _ := df.Df[col].Get(index)
+			l = append(l, fmt.Sprintf("%v", v))
 		}
 		table.Append(l)
 	}
@@ -140,15 +222,7 @@ func (df *DataFrame) String() string {
 	footer[0] = fmt.Sprintf("COUNT:%v", df.NbLines)
 	for i, col := range df.Columns {
 		m := df.Df[col].Type()
-		if len(m) == 0 {
-			log.Panicf("Error: Types are not defined for [%v] column\n", col)
-		} else if len(m) > 1 {
-			footer[i+1] = "MULTI"
-		} else {
-			for k := range m {
-				footer[i+1] = string(k)
-			}
-		}
+		footer[i+1] = string(m)
 	}
 	table.SetFooter(footer)
 	table.Render()
@@ -161,9 +235,13 @@ func (df *DataFrame) String() string {
 // Warning Select function doesn't make a full copy
 // To change Data you shoud use the Copy function before or after
 func (df *DataFrame) Select(cols ...string) *DataFrame {
+	if df == nil {
+		fmt.Println("DataFrame is nil")
+		return nil
+	}
 	dfs := &DataFrame{}
 	dfs.NbLines = df.NbLines
-	dfs.Df = map[string]series.Series{}
+	dfs.Df = map[string]*series.Series{}
 	dfs.Indices = df.Indices
 	for _, col := range cols {
 		if _, ok := df.Df[col]; !ok {
@@ -204,119 +282,6 @@ func (df *DataFrame) Copy() *DataFrame {
 		}
 	}
 	return dfs
-}
-
-// SetList function is used to add a new column of data.
-// l argument should be a slice of something
-// Example: df.SetList("foo",[]int{1,2,3,...})
-func (df *DataFrame) SetList(l interface{}, col string) {
-	v := reflect.ValueOf(l)
-	t := v.Kind()
-	if t != reflect.Slice {
-		fmt.Printf("Error: Need to Use a Slice in 2nd arg instead of [%v]\n", t)
-		return
-	}
-	length := v.Len()
-	if length != df.NbLines && df.NbLines != 0 {
-		fmt.Printf("Error: Tried to insert a list with len [%v] in DataFrame with len [%v]\n", length, df.NbLines)
-		return
-	}
-	if df.Df == nil {
-		df.Df = map[string][]C{}
-	}
-	if df.Types == nil {
-		df.Types = map[string]map[Type]int{}
-	}
-	_, ok := df.Df[col]
-	if ok == false {
-		df.Columns = append(df.Columns, col)
-		df.Types[col] = map[Type]int{}
-	} else {
-		fmt.Printf("Warning: Column [%v] has been replaced\n", col)
-	}
-	tmp := make([]C, length)
-	for i := 0; i < length; i++ {
-		vv := v.Index(i)
-		tt := vv.Kind()
-		switch tt {
-		case reflect.String:
-			tmp[i] = NewC(convertTo(vv.String()))
-		case reflect.Int:
-			tmp[i] = NewC(vv.Int())
-		case reflect.Float64:
-			tmp[i] = NewC(vv.Float())
-		default:
-			tmp[i] = NewC(vv.Interface())
-		}
-		tc := tmp[i].Type()
-		_, ok = df.Types[col][tc]
-		if ok == false {
-			df.Types[col][tc] = 0
-		}
-		df.Types[col][tc]++
-	}
-	df.Df[col] = tmp
-	df.NbLines = length
-}
-
-// SetMatrix is a function to add several columns of data
-// m argument should be a slice of slice of something
-// Example: df.SetMatrix([]string{"foo","bar"}, []interface{}{[]int{1,2,3,...},[]string{"a","b","c",...}})
-func (df *DataFrame) SetMatrix(m interface{}, cols ...string) {
-	v := reflect.ValueOf(m)
-	t := v.Kind()
-	if t != reflect.Slice {
-		fmt.Printf("Error: Need to Use a Slice in 2nd arg instead of [%v]\n", t)
-		return
-	}
-	length := v.Len()
-	for i := 0; i < length; i++ {
-		df.SetList(v.Index(i).Interface(), cols[i])
-	}
-}
-
-// ToFloat function is a function to convert a column of Numeric in a slice of float64
-func (df *DataFrame) ToFloat(col string) []float64 {
-	ret := []float64{}
-	_, ok := df.Df[col]
-	if ok == false {
-		fmt.Printf("Warning: Column name [%v] doesn't exist\n", col)
-		return nil
-	}
-	if len(df.Types[col]) != 1 {
-		fmt.Printf("Error: Column [%v] is a multiple type can't convert to float64\n", col)
-		return nil
-	} else if len(df.Types[col]) == 1 {
-		var t Type
-		for k := range df.Types[col] {
-			t = k
-		}
-		switch t {
-		case NUMERIC:
-			for i := 0; i < df.NbLines; i++ {
-				ret = append(ret, float64(df.Df[col][i].(Numeric)))
-			}
-		default:
-			fmt.Printf("Error: Column [%v] is a [%v] type can't convert to float64\n", col, t)
-			return nil
-		}
-	}
-	return ret
-}
-
-// ToMatrix is function to convert columns of Numeric in a matrix of float64
-func (df *DataFrame) ToMatrix(cols ...string) ([]string, [][]float64) {
-	ret := [][]float64{}
-	columns := []string{}
-	for _, col := range cols {
-		r := df.ToFloat(col)
-		if r == nil {
-			continue
-		}
-		columns = append(columns, col)
-		ret = append(ret, r)
-	}
-	return columns, ret
 }
 
 // FilterGT is function to filter if data in the specified column are greater than i argument

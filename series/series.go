@@ -24,14 +24,32 @@ func (s Series) Get(i Index) (v types.C, ok bool) {
 	return
 }
 
-func (s *Series) Set(i Index, v types.C) error {
+func (s *Series) Set(i Index, v interface{}) error {
 	if _, ok := s.Get(i); !ok {
 		s.Indices = append(s.Indices, i)
-		s.Series[i] = v
+		switch v.(type) {
+		case types.C:
+			s.Series[i] = v.(types.C)
+		default:
+			s.Series[i] = types.NewC(v)
+		}
 		return nil
 	} else {
-		return fmt.Errorf("Index already set")
+		return fmt.Errorf("Index already set, use Replace method of you want to replace the value")
 	}
+}
+
+func (s *Series) Replace(i Index, v interface{}) error {
+	if _, ok := s.Get(i); !ok {
+		return fmt.Errorf("Index %v doesn't exist, impossible to replace it's value")
+	}
+	switch v.(type) {
+	case types.C:
+		s.Series[i] = v.(types.C)
+	default:
+		s.Series[i] = types.NewC(v)
+	}
+	return nil
 }
 
 // Returns the position in the slice of the Index i
@@ -58,11 +76,31 @@ func (s *Series) Del(i Index) error {
 	return nil
 }
 
+func (s *Series) ReIndex(indices []Index) {
+	if len(indices) != s.Len() {
+		fmt.Println("Error: mismatch lengths of series and new indices")
+	}
+	for i, index := range indices {
+		old_index := s.Indices[i]
+		s.Indices[i] = index
+		s.Series[index] = s.Series[old_index]
+		delete(s.Series, old_index)
+	}
+}
+
+func NewEmpty() *Series {
+	return &Series{Series: map[Index]types.C{}, Indices: []Index{}}
+}
+
 // Creates a new serie by passing map or slice
 func New(values interface{}) *Series {
 	ret := &Series{Series: map[Index]types.C{}, Indices: []Index{}}
 
 	switch values.(type) {
+	case map[Index]types.C:
+		for k, v := range values.(map[Index]types.C) {
+			ret.Set(k, v)
+		}
 	case map[Index]interface{}:
 		for k, v := range values.(map[Index]interface{}) {
 			ret.Set(k, types.NewC(v))

@@ -46,7 +46,7 @@ func TestNumericDiv(t *testing.T) {
 	if n1.Div(Numeric(1)) != n1 {
 		t.Errorf("Error neutral element")
 	}
-	if n1.Div(Numeric(0)) != newNan() {
+	if n1.Div(Numeric(0)) != NewNan() {
 		t.Errorf("Error div by zero")
 	}
 }

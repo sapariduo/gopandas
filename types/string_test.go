@@ -25,7 +25,7 @@ func TestStringAdd(t *testing.T) {
 func TestStringMul(t *testing.T) {
 	s1 := String("foo")
 	s2 := String("bar")
-	if s1.Mul(s2) != s1 {
+	if s1.Mul(s2) != NewNan() {
 		t.Error("Error String Mul String")
 	}
 }
@@ -33,7 +33,7 @@ func TestStringMul(t *testing.T) {
 func TestStringDiv(t *testing.T) {
 	s1 := String("foo")
 	s2 := String("bar")
-	if s1.Div(s2) != s1 {
+	if s1.Div(s2) != NewNan() {
 		t.Error("Error String Div String")
 	}
 }
@@ -41,7 +41,7 @@ func TestStringDiv(t *testing.T) {
 func TestStringMod(t *testing.T) {
 	s1 := String("foo")
 	s2 := String("bar")
-	if s1.Mod(s2) != s1 {
+	if s1.Mod(s2) != NewNan() {
 		t.Error("Error String Mod String")
 	}
 }

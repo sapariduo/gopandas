@@ -7,28 +7,21 @@ func (String) Type() Type {
 }
 
 func (s String) Add(c C) C {
-	var ret C
-	switch c.(type) {
-	case String:
-		ret = s + c.(String)
-	default:
-		ret = s
-	}
-	return ret
+	return NewNan()
 }
 
 func (s String) Sub(c C) C {
-	return s
+	return NewNan()
 }
 
 func (s String) Mul(c C) C {
-	return s
+	return NewNan()
 }
 func (s String) Div(c C) C {
-	return s
+	return NewNan()
 }
 func (s String) Mod(c C) C {
-	return s
+	return NewNan()
 }
 
 func (s String) Great(c C) bool {
