@@ -455,17 +455,16 @@ func OR(l1 []int, l2 []int) []int {
 	sort.Ints(ret)
 	return ret
 }
+*/
 
 // Apply function apply a function on dataframe
 // To Do
-func (df *DataFrame) Apply(f func(c C) C) {
-	for i := 0; i < df.NbLines; i++ {
-		for _, col := range df.Columns {
-			df.Df[col][i] = f(df.Df[col][i])
-		}
+func (df *DataFrame) Apply(f func(types.C) types.C) {
+	for _, c := range df.Columns {
+		df.Df[c] = df.Df[c].Apply(f)
 	}
 }
-*/
+
 func checkerr(e error) {
 	if e != nil {
 		log.Panic(e)

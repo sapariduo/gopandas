@@ -55,6 +55,7 @@ Series are basically simple ordered maps of values with indices as keys
 - Get the indices
 - Get the number of occurences for each value
 - Types/Type
+- ReIndex
 
 ## Initialize series
 Series can be constructed with maps or slices of values. Maps are used as input if there is a need to specify the indices of the values. Indices are empty interfaces so feel free to use what you want. If slices are used the indices will be the positions in the slices of the values.
@@ -145,6 +146,67 @@ fmt.Print(s)
 //output
 Series:{2:-1, 0:1.1, 1:1.2}
 Series:{1:1.2, 0:1.1, 2:-1}
+```
+
+## Usage of DataFrames
+
+- You can create a dataFrame from scratch with the New method:
+
+```
+df := dataframes.New([]string{"A", "B"}, []*series.Series{
+    series.New([]int{1, 2, 3, 4}),
+    series.New([]string{"one", "two", "three", "four"}),
+})
+fmt.Print(df)
+//output
++---------+---------+--------+
+|  Index  |    A    |   B    |
++---------+---------+--------+
+|       0 |       1 |    one |
+|       1 |       2 |    two |
+|       2 |       3 |  three |
+|       3 |       4 |   four |
++---------+---------+--------+
+| COUNT:4 | numeric | string |
++---------+---------+--------+
+```
+
+- You can get a simple statistical description by using the Describe method:
+
+```
+fmt.Print(df.Describe())
+//ouput
++---------+---------+----------+
+|  Index  |    A    |    B     |
++---------+---------+----------+
+|     min |       1 |     four |
+|     max |       4 |      two |
+|    mean |     2.5 |      Nan |
+|   count |       4 |        4 |
++---------+---------+----------+
+| COUNT:4 | numeric | multiple |
++---------+---------+----------+
+```
+
+- It's possible to select only a subset of columns with the Select method:
+```
+df := dataframes.New([]string{"A", "B", "C"}, []*series.Series{
+    series.New([]int{1, 2, 3, 4}),
+    series.New([]string{"one", "two", "three", "four"}),
+    series.New([]interface{}{time.Now(), 2, "3", 1.1}),
+})
+fmt.Print(df.Select("A", "B"))
+//output
++---------+---------+--------+
+|  Index  |    A    |   B    |
++---------+---------+--------+
+|       0 |       1 |    one |
+|       1 |       2 |    two |
+|       2 |       3 |  three |
+|       3 |       4 |   four |
++---------+---------+--------+
+| COUNT:4 | numeric | string |
++---------+---------+--------+
 ```
 
 # Types
