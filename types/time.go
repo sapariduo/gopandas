@@ -3,6 +3,11 @@ package types
 import "time"
 
 type Time time.Time
+type Duration string
+
+const (
+	DAY Duration = "24h"
+)
 
 func (Time) Type() Type {
 	return TIME
