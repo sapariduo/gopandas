@@ -147,6 +147,33 @@ func TestMulDivMod(t *testing.T) {
 	}
 }
 
+func TestFilter(t *testing.T) {
+	s := New([]int{6, 7, 8})
+
+	for _, test := range []struct {
+		idxtest, idxtrue Indices
+	}{
+		{idxtest: s.FilterEQ(7), idxtrue: Indices{1}},
+		{idxtest: s.FilterNEQ(7), idxtrue: Indices{0, 2}},
+		{idxtest: s.FilterGT(7), idxtrue: Indices{2}},
+		{idxtest: s.FilterGTEQ(7), idxtrue: Indices{1, 2}},
+		{idxtest: s.FilterLT(7), idxtrue: Indices{0}},
+		{idxtest: s.FilterLTEQ(7), idxtrue: Indices{0, 1}},
+	} {
+		if !test.idxtest.equal(test.idxtrue) {
+			t.Error(test.idxtest, "vs", test.idxtrue)
+		}
+	}
+}
+
+func TestSelect(t *testing.T) {
+	s := New([]int{6, 7, 8})
+
+	if !s.Select(Indices{0, 2}).Equal(New(map[Index]int{0: 6, 2: 8})) {
+		t.Error("Nop")
+	}
+}
+
 /* Test sort not valid
 func TestSort(t *testing.T) {
 	s := New(map[Index]int{0: 3, 1: 1, 2: 2})

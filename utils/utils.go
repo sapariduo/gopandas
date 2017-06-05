@@ -1,13 +1,16 @@
 package utils
 
 import (
+	"gopandas/series"
 	"gopandas/types"
 	"log"
 	"time"
 )
 
-func DateRangeUTC(start, end string, d types.Duration) []types.Time {
-	ret := []types.Time{}
+type DateRange []types.Time
+
+func DateRangeUTC(start, end string, d types.Duration) DateRange {
+	ret := DateRange{}
 	duration, err := time.ParseDuration(string(d))
 	if err != nil {
 		log.Println("Error interval syntax is incorrect")
@@ -26,6 +29,15 @@ func DateRangeUTC(start, end string, d types.Duration) []types.Time {
 	for tstart.Unix() <= tend.Unix() {
 		ret = append(ret, types.Time(tstart))
 		tstart = tstart.Add(duration)
+	}
+	return ret
+}
+
+func (d DateRange) ToIndex() []series.Index {
+	ret := make([]series.Index, len(d))
+
+	for i, t := range d {
+		ret[i] = series.Index(t)
 	}
 	return ret
 }

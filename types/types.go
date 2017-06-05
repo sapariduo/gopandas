@@ -6,11 +6,17 @@ type Type string
 type Operator string
 
 const (
-	ADD Operator = "+"
-	SUB          = "-"
-	MUL          = "*"
-	DIV          = "/"
-	MOD          = "%"
+	ADD       Operator = "+"
+	SUB                = "-"
+	MUL                = "*"
+	DIV                = "/"
+	MOD                = "%"
+	LESS               = "<"
+	LESSEQ             = "<="
+	GREATER            = ">"
+	GREATEREQ          = ">="
+	EQUAL              = "=="
+	NOTEQUAL           = "!="
 )
 const (
 	NUMERIC Type = "numeric"

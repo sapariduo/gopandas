@@ -19,7 +19,7 @@ import (
 // Final goal is to have all attributes in private.
 type DataFrame struct {
 	Columns []string
-	Indices []series.Index
+	Indices series.Indices
 	Df      map[string]*series.Series
 	NbLines int
 }
@@ -34,7 +34,7 @@ type ConfigDataFrame struct {
 }
 
 // Basic Parser of string in a interface{}
-// Can be a float or a time in RFC3339 format
+// Can be a float or a time in RFC3339 format {
 // To be completed...
 func convertTo(s string) interface{} {
 	f, err := strconv.ParseFloat(s, 64)
@@ -46,6 +46,13 @@ func convertTo(s string) interface{} {
 		return t
 	}
 	return s
+}
+
+func (df *DataFrame) ReIndex(indices series.Indices) {
+	for _, col := range df.Columns {
+		df.Df[col].ReIndex(indices)
+	}
+	df.Indices = indices
 }
 
 func (df *DataFrame) Len() int {
@@ -94,7 +101,7 @@ func (df *DataFrame) AddSeries(col string, s *series.Series) error {
 
 // Create a empty dataframe
 func NewEmpty() *DataFrame {
-	return &DataFrame{Columns: []string{}, Indices: []series.Index{}, Df: map[string]*series.Series{}, NbLines: 0}
+	return &DataFrame{Columns: []string{}, Indices: series.Indices{}, Df: map[string]*series.Series{}, NbLines: 0}
 }
 
 func New(columns []string, ss []*series.Series) *DataFrame {
@@ -105,6 +112,7 @@ func New(columns []string, ss []*series.Series) *DataFrame {
 	df := NewEmpty()
 	for i, c := range columns {
 		if err := df.AddSeries(c, ss[i]); err != nil {
+			log.Println(err)
 			return nil
 		}
 	}
@@ -282,124 +290,50 @@ func (df *DataFrame) Copy() *DataFrame {
 		}
 	}
 	return dfs
-}
+}*/
 
 // FilterGT is function to filter if data in the specified column are greater than i argument
 // Return of the function is the indexes of data wich are greater than i
-func (df *DataFrame) FilterGT(col string, i interface{}) []int {
-	c := NewC(i)
-	_, ok := df.Df[col]
-	if ok == false {
-		fmt.Printf("Warning: Column name [%v] doesn't exist\n", col)
-		return nil
-	}
-	ret := []int{}
-	for i := 0; i < df.NbLines; i++ {
-		if df.Df[col][i].Great(c) {
-			ret = append(ret, i)
-		}
-	}
-	return ret
+func (df *DataFrame) FilterGT(col string, i interface{}) series.Indices {
+	return df.Df[col].FilterGT(i)
+}
+
+func (df *DataFrame) FilterGTEQ(col string, i interface{}) series.Indices {
+	return df.Df[col].FilterGTEQ(i)
 }
 
 // FilterLT is a function similar to FilterGT for the lower than condition
-func (df *DataFrame) FilterLT(col string, i interface{}) []int {
-	c := NewC(i)
-	_, ok := df.Df[col]
-	if ok == false {
-		fmt.Printf("Warning: Column name [%v] doesn't exist\n", col)
-		return nil
-	}
-	ret := []int{}
-	for i := 0; i < df.NbLines; i++ {
-		if df.Df[col][i].Less(c) {
-			ret = append(ret, i)
-		}
-	}
-	return ret
+func (df *DataFrame) FilterLT(col string, i interface{}) series.Indices {
+	return df.Df[col].FilterLT(i)
+}
+
+func (df *DataFrame) FilterLTEQ(col string, i interface{}) series.Indices {
+	return df.Df[col].FilterLTEQ(i)
 }
 
 // FilterEQ is a function similar to FilterGT for the equal condition
-func (df *DataFrame) FilterEQ(col string, i interface{}) []int {
-	c := NewC(i)
-	_, ok := df.Df[col]
-	if ok == false {
-		fmt.Printf("Warning: Column name [%v] doesn't exist\n", col)
+func (df *DataFrame) FilterEQ(col string, i interface{}) series.Indices {
+	return df.Df[col].FilterEQ(i)
+}
+
+func (df *DataFrame) FilterNEQ(col string, i interface{}) series.Indices {
+	return df.Df[col].FilterNEQ(i)
+}
+
+// SelectByIndex make a full copy of dataframe for the rows indexes specified
+func (df *DataFrame) SelectByIndex(indices series.Indices) *DataFrame {
+	if len(indices) == 0 {
+		fmt.Println("Error: No indices available")
 		return nil
 	}
-	ret := []int{}
-	for i := 0; i < df.NbLines; i++ {
-		if df.Df[col][i].Equal(c) {
-			ret = append(ret, i)
-		}
+	ret := NewEmpty()
+	for _, col := range df.Columns {
+		ret.AddSeries(col, df.Df[col].Select(indices))
 	}
 	return ret
 }
 
-// SelectByIndex make a full copy of dataframe for the rows indexes specified
-func (df *DataFrame) SelectByIndex(l []int) *DataFrame {
-	if len(l) == 0 {
-		fmt.Println("Error: No indexes availables")
-		return nil
-	}
-
-	dfs := &DataFrame{}
-	dfs.Df = map[string][]C{}
-	dfs.Types = map[string]map[Type]int{}
-
-	for _, col := range df.Columns {
-		_, ok := df.Df[col]
-		if ok == false {
-			fmt.Printf("Warning: Column name [%v] doesn't exist\n", col)
-		} else {
-			dfs.Columns = append(dfs.Columns, col)
-			dfs.Df[col] = []C{}
-			dfs.Types[col] = map[Type]int{}
-		}
-	}
-	for _, v := range l {
-		if v > df.NbLines-1 {
-			fmt.Printf("Warning: Index [%v] out of range\n", v)
-			continue
-		}
-		for _, col := range dfs.Columns {
-			c := df.Df[col][v]
-			dfs.Df[col] = append(dfs.Df[col], c) //To do: Check if not out of range
-			switch c.(type) {
-			case Numeric:
-				_, ok := dfs.Types[col][NUMERIC]
-				if ok == false {
-					dfs.Types[col][NUMERIC] = 0
-				}
-				dfs.Types[col][NUMERIC]++
-			case String:
-				_, ok := dfs.Types[col][STRING]
-				if ok == false {
-					dfs.Types[col][STRING] = 0
-				}
-				dfs.Types[col][STRING]++
-			case Time:
-				_, ok := dfs.Types[col][TIME]
-				if ok == false {
-					dfs.Types[col][TIME] = 0
-				}
-				dfs.Types[col][TIME]++
-			default:
-				_, ok := dfs.Types[col][NAN]
-				if ok == false {
-					dfs.Types[col][NAN] = 0
-				}
-				dfs.Types[col][NAN]++
-			}
-		}
-	}
-	dfs.NbLines = len(dfs.Df[dfs.Columns[0]])
-	if len(dfs.Columns) != 0 {
-		return dfs
-	}
-	return nil
-}
-
+/*
 // AND function looks for common indexes between the two arguments of indexes
 func AND(l1 []int, l2 []int) []int {
 	d1 := map[int]bool{}
@@ -454,8 +388,7 @@ func OR(l1 []int, l2 []int) []int {
 	}
 	sort.Ints(ret)
 	return ret
-}
-*/
+}*/
 
 // Apply function apply a function on dataframe
 // To Do
