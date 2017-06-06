@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/csv"
 	"fmt"
+	"gopandas/indices"
 	"gopandas/series"
 	"gopandas/types"
 	"io/ioutil"
@@ -19,7 +20,7 @@ import (
 // Final goal is to have all attributes in private.
 type DataFrame struct {
 	Columns []string
-	Indices series.Indices
+	Indices indices.Indices
 	Df      map[string]*series.Series
 	NbLines int
 }
@@ -48,7 +49,7 @@ func convertTo(s string) interface{} {
 	return s
 }
 
-func (df *DataFrame) ReIndex(indices series.Indices) {
+func (df *DataFrame) ReIndex(indices indices.Indices) {
 	for _, col := range df.Columns {
 		df.Df[col].ReIndex(indices)
 	}
@@ -101,7 +102,7 @@ func (df *DataFrame) AddSeries(col string, s *series.Series) error {
 
 // Create a empty dataframe
 func NewEmpty() *DataFrame {
-	return &DataFrame{Columns: []string{}, Indices: series.Indices{}, Df: map[string]*series.Series{}, NbLines: 0}
+	return &DataFrame{Columns: []string{}, Indices: indices.Indices{}, Df: map[string]*series.Series{}, NbLines: 0}
 }
 
 func New(columns []string, ss []*series.Series) *DataFrame {
@@ -125,7 +126,7 @@ func (df *DataFrame) Describe() *DataFrame {
 	}
 	ret := NewEmpty()
 	for _, c := range df.Columns {
-		ret.AddSeries(c, series.New(map[series.Index]interface{}{
+		ret.AddSeries(c, series.New(map[indices.Index]interface{}{
 			"min":   df.Df[c].Min(),
 			"max":   df.Df[c].Max(),
 			"mean":  df.Df[c].Mean(),
@@ -294,34 +295,34 @@ func (df *DataFrame) Copy() *DataFrame {
 
 // FilterGT is function to filter if data in the specified column are greater than i argument
 // Return of the function is the indexes of data wich are greater than i
-func (df *DataFrame) FilterGT(col string, i interface{}) series.Indices {
+func (df *DataFrame) FilterGT(col string, i interface{}) indices.Indices {
 	return df.Df[col].FilterGT(i)
 }
 
-func (df *DataFrame) FilterGTEQ(col string, i interface{}) series.Indices {
+func (df *DataFrame) FilterGTEQ(col string, i interface{}) indices.Indices {
 	return df.Df[col].FilterGTEQ(i)
 }
 
 // FilterLT is a function similar to FilterGT for the lower than condition
-func (df *DataFrame) FilterLT(col string, i interface{}) series.Indices {
+func (df *DataFrame) FilterLT(col string, i interface{}) indices.Indices {
 	return df.Df[col].FilterLT(i)
 }
 
-func (df *DataFrame) FilterLTEQ(col string, i interface{}) series.Indices {
+func (df *DataFrame) FilterLTEQ(col string, i interface{}) indices.Indices {
 	return df.Df[col].FilterLTEQ(i)
 }
 
 // FilterEQ is a function similar to FilterGT for the equal condition
-func (df *DataFrame) FilterEQ(col string, i interface{}) series.Indices {
+func (df *DataFrame) FilterEQ(col string, i interface{}) indices.Indices {
 	return df.Df[col].FilterEQ(i)
 }
 
-func (df *DataFrame) FilterNEQ(col string, i interface{}) series.Indices {
+func (df *DataFrame) FilterNEQ(col string, i interface{}) indices.Indices {
 	return df.Df[col].FilterNEQ(i)
 }
 
 // SelectByIndex make a full copy of dataframe for the rows indexes specified
-func (df *DataFrame) SelectByIndex(indices series.Indices) *DataFrame {
+func (df *DataFrame) SelectByIndex(indices indices.Indices) *DataFrame {
 	if len(indices) == 0 {
 		fmt.Println("Error: No indices available")
 		return nil
@@ -334,16 +335,16 @@ func (df *DataFrame) SelectByIndex(indices series.Indices) *DataFrame {
 }
 
 // AND function looks for common indexes between the two arguments of indexes
-func AND(idx1 series.Indices, idx2 series.Indices) series.Indices {
-	d1 := map[series.Index]bool{}
-	d2 := map[series.Index]bool{}
+func AND(idx1 indices.Indices, idx2 indices.Indices) indices.Indices {
+	d1 := map[indices.Index]bool{}
+	d2 := map[indices.Index]bool{}
 	for _, v := range idx1 {
 		d1[v] = true
 	}
 	for _, v := range idx2 {
 		d2[v] = true
 	}
-	ret := series.Indices{}
+	ret := indices.Indices{}
 	for k := range d1 {
 		_, ok := d2[k]
 		if ok {
@@ -364,15 +365,15 @@ func AND(idx1 series.Indices, idx2 series.Indices) series.Indices {
 }
 
 // OR function looks for indexes that are in first argument or second aregument of indexes
-func OR(idx1 series.Indices, idx2 series.Indices) series.Indices {
-	d := map[series.Index]bool{}
+func OR(idx1 indices.Indices, idx2 indices.Indices) indices.Indices {
+	d := map[indices.Index]bool{}
 	for _, v := range idx1 {
 		d[v] = true
 	}
 	for _, v := range idx2 {
 		d[v] = true
 	}
-	ret := series.Indices{}
+	ret := indices.Indices{}
 	for k := range d {
 		ret = append(ret, k)
 	}

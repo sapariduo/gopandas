@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"gopandas/series"
+	"gopandas/indices"
 	"gopandas/types"
 	"log"
 	"time"
@@ -33,11 +33,11 @@ func DateRangeUTC(start, end string, d types.Duration) DateRange {
 	return ret
 }
 
-func (d DateRange) ToIndex() []series.Index {
-	ret := make([]series.Index, len(d))
+func (d DateRange) ToIndex() indices.Indices {
+	ret := make(indices.Indices, len(d))
 
 	for i, t := range d {
-		ret[i] = series.Index(t)
+		ret[i] = indices.Index(t)
 	}
 	return ret
 }

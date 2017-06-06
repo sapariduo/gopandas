@@ -2,6 +2,7 @@ package series
 
 import (
 	"fmt"
+	"gopandas/indices"
 	"gopandas/types"
 	"log"
 	"sort"
@@ -9,37 +10,20 @@ import (
 	"time"
 )
 
-// Index Type
-type Index interface{}
-
-type Indices []Index
-
 // Series Type
-//type Series map[Index]types.C
+//type Series map[indices.Index]types.C
 
 type Series struct {
-	Series  map[Index]types.C
-	Indices Indices
+	Series  map[indices.Index]types.C
+	Indices indices.Indices
 }
 
-func (idx1 Indices) equal(idx2 Indices) bool {
-	if len(idx1) != len(idx2) {
-		return false
-	}
-	for i := range idx1 {
-		if idx1[i] != idx2[i] {
-			return false
-		}
-	}
-	return true
-}
-
-func (s Series) Get(i Index) (v types.C, ok bool) {
+func (s Series) Get(i indices.Index) (v types.C, ok bool) {
 	v, ok = s.Series[i]
 	return
 }
 
-func (s *Series) Set(i Index, v interface{}) error {
+func (s *Series) Set(i indices.Index, v interface{}) error {
 	if _, ok := s.Get(i); !ok {
 		s.Indices = append(s.Indices, i)
 		switch v.(type) {
@@ -54,7 +38,7 @@ func (s *Series) Set(i Index, v interface{}) error {
 	}
 }
 
-func (s *Series) Replace(i Index, v interface{}) error {
+func (s *Series) Replace(i indices.Index, v interface{}) error {
 	if _, ok := s.Get(i); !ok {
 		return fmt.Errorf("Index %v doesn't exist, impossible to replace it's value")
 	}
@@ -68,7 +52,7 @@ func (s *Series) Replace(i Index, v interface{}) error {
 }
 
 // Returns the position in the slice of the Index i
-func (s *Series) getIndex(i Index) (int, error) {
+func (s *Series) getIndex(i indices.Index) (int, error) {
 	for j, index := range s.Indices {
 		if i == index {
 			return j, nil
@@ -77,7 +61,7 @@ func (s *Series) getIndex(i Index) (int, error) {
 	return -1, fmt.Errorf("Index %v doesn't exist", i)
 }
 
-func (s *Series) Del(i Index) error {
+func (s *Series) Del(i indices.Index) error {
 	index_i, err := s.getIndex(i)
 	if err != nil {
 		return err
@@ -91,14 +75,14 @@ func (s *Series) Del(i Index) error {
 	return nil
 }
 
-func (s *Series) ReIndex(indices Indices) {
-	if len(indices) != s.Len() {
+func (s *Series) ReIndex(idx indices.Indices) {
+	if len(idx) != s.Len() {
 		fmt.Println("Error: mismatch lengths of series and new indices")
 	}
-	newIndices := make(Indices, len(indices))
-	newValues := map[Index]types.C{}
+	newIndices := make(indices.Indices, len(idx))
+	newValues := map[indices.Index]types.C{}
 
-	for i, index := range indices {
+	for i, index := range idx {
 		newIndices[i] = index
 		newValues[index] = s.Series[s.Indices[i]]
 	}
@@ -107,32 +91,32 @@ func (s *Series) ReIndex(indices Indices) {
 }
 
 func NewEmpty() *Series {
-	return &Series{Series: map[Index]types.C{}, Indices: Indices{}}
+	return &Series{Series: map[indices.Index]types.C{}, Indices: indices.Indices{}}
 }
 
 // Creates a new serie by passing map or slice
 func New(values interface{}) *Series {
-	ret := &Series{Series: map[Index]types.C{}, Indices: Indices{}}
+	ret := &Series{Series: map[indices.Index]types.C{}, Indices: indices.Indices{}}
 
 	switch values.(type) {
-	case map[Index]types.C:
-		for k, v := range values.(map[Index]types.C) {
+	case map[indices.Index]types.C:
+		for k, v := range values.(map[indices.Index]types.C) {
 			ret.Set(k, v)
 		}
-	case map[Index]interface{}:
-		for k, v := range values.(map[Index]interface{}) {
+	case map[indices.Index]interface{}:
+		for k, v := range values.(map[indices.Index]interface{}) {
 			ret.Set(k, types.NewC(v))
 		}
-	case map[Index]int:
-		for k, v := range values.(map[Index]int) {
+	case map[indices.Index]int:
+		for k, v := range values.(map[indices.Index]int) {
 			ret.Set(k, types.Numeric(v))
 		}
-	case map[Index]float64:
-		for k, v := range values.(map[Index]float64) {
+	case map[indices.Index]float64:
+		for k, v := range values.(map[indices.Index]float64) {
 			ret.Set(k, types.Numeric(v))
 		}
-	case map[Index]string:
-		for k, v := range values.(map[Index]string) {
+	case map[indices.Index]string:
+		for k, v := range values.(map[indices.Index]string) {
 			ret.Set(k, types.String(v))
 		}
 	case []interface{}:
@@ -196,7 +180,7 @@ func (s *Series) Len() int {
 
 // Apply a function on a series and returns a new one
 func (s *Series) Apply(f func(c types.C) types.C) *Series {
-	ret := &Series{Series: map[Index]types.C{}, Indices: Indices{}}
+	ret := &Series{Series: map[indices.Index]types.C{}, Indices: indices.Indices{}}
 	for k, v := range s.Series {
 		ret.Set(k, f(v))
 	}
@@ -252,7 +236,7 @@ func (s1 *Series) Equal(s2 *Series) bool {
 }
 
 // Returns a slice of series's indices
-func (s *Series) GetIndices() Indices {
+func (s *Series) GetIndices() indices.Indices {
 	return s.Indices
 }
 
@@ -283,7 +267,7 @@ func (s1 *Series) op(s2 *Series, op types.Operator) *Series {
 			return nil
 		}
 	}
-	ret := &Series{Series: map[Index]types.C{}, Indices: Indices{}}
+	ret := &Series{Series: map[indices.Index]types.C{}, Indices: indices.Indices{}}
 
 	for _, index := range s1.Indices {
 		v1, _ := s1.Get(index)
@@ -322,9 +306,9 @@ func (s1 *Series) Mod(s2 *Series) *Series {
 	return s1.op(s2, types.MOD)
 }
 
-func (s *Series) filter(i interface{}, op types.Operator) Indices {
+func (s *Series) filter(i interface{}, op types.Operator) indices.Indices {
 	c := types.NewC(i)
-	ret := Indices{}
+	ret := indices.Indices{}
 	for _, index := range s.Indices {
 		value := s.Series[index]
 		switch op {
@@ -357,26 +341,26 @@ func (s *Series) filter(i interface{}, op types.Operator) Indices {
 	return ret
 }
 
-func (s *Series) FilterLT(i interface{}) Indices {
+func (s *Series) FilterLT(i interface{}) indices.Indices {
 	return s.filter(i, types.LESS)
 }
 
-func (s *Series) FilterLTEQ(i interface{}) Indices {
+func (s *Series) FilterLTEQ(i interface{}) indices.Indices {
 	return s.filter(i, types.LESSEQ)
 }
 
-func (s *Series) FilterGT(i interface{}) Indices {
+func (s *Series) FilterGT(i interface{}) indices.Indices {
 	return s.filter(i, types.GREATER)
 }
 
-func (s *Series) FilterGTEQ(i interface{}) Indices {
+func (s *Series) FilterGTEQ(i interface{}) indices.Indices {
 	return s.filter(i, types.GREATEREQ)
 }
 
-func (s *Series) FilterEQ(i interface{}) Indices {
+func (s *Series) FilterEQ(i interface{}) indices.Indices {
 	return s.filter(i, types.EQUAL)
 }
-func (s *Series) FilterNEQ(i interface{}) Indices {
+func (s *Series) FilterNEQ(i interface{}) indices.Indices {
 	return s.filter(i, types.NOTEQUAL)
 }
 
@@ -454,7 +438,7 @@ func (s Series) Mean() types.C {
 	return sum.Div(types.Numeric(s.Len()))
 }
 
-func (s *Series) Select(indices Indices) *Series {
+func (s *Series) Select(indices indices.Indices) *Series {
 	values := []interface{}{}
 	for _, index := range indices {
 		if _, ok := s.Series[index]; ok {

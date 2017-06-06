@@ -1,6 +1,7 @@
 package series
 
 import (
+	"gopandas/indices"
 	"gopandas/types"
 	"testing"
 )
@@ -17,27 +18,27 @@ func TestNew(t *testing.T) {
 }
 
 func TestDel(t *testing.T) {
-	s := New(map[Index]int{"one": 0, "two": 1, "three": 2})
+	s := New(map[indices.Index]int{"one": 0, "two": 1, "three": 2})
 	err := s.Del(3)
 	if err == nil {
 		t.Error("Nop")
 	}
 	err = s.Del("two")
-	if err != nil || !s.Equal(New(map[Index]int{"three": 2, "one": 0})) {
+	if err != nil || !s.Equal(New(map[indices.Index]int{"three": 2, "one": 0})) {
 		t.Error("Nop")
 	}
-	s = New(map[Index]int{"one": 0, "two": 1, "three": 2})
+	s = New(map[indices.Index]int{"one": 0, "two": 1, "three": 2})
 	err = s.Del("one")
 	if err != nil {
 		t.Error("Nop")
 	}
-	if !s.Equal(New(map[Index]int{"three": 2, "two": 1})) {
+	if !s.Equal(New(map[indices.Index]int{"three": 2, "two": 1})) {
 		t.Error("Nop")
 	}
 }
 
 func TestSeriesTypes(t *testing.T) {
-	s := New(map[Index]interface{}{
+	s := New(map[indices.Index]interface{}{
 		0:     1,
 		1:     "one",
 		"two": types.Nan("Nan"),
@@ -99,7 +100,7 @@ func TestSeriesValuesCount(t *testing.T) {
 		{c: types.Numeric(2), value: 1},
 		{c: types.NewNan(), value: 1},
 	}
-	s := New(map[Index]interface{}{
+	s := New(map[indices.Index]interface{}{
 		0:      1,
 		5:      1,
 		1:      "un",
@@ -123,7 +124,7 @@ func TestAddSub(t *testing.T) {
 	if !s1.Add(s2).Equal(s3) {
 		t.Error("Error Add")
 	}
-	if s := New([]string{"1", "2", "3"}).Add(New(map[Index]int{1: 1, 2: 2, 3: 3})); s != nil {
+	if s := New([]string{"1", "2", "3"}).Add(New(map[indices.Index]int{1: 1, 2: 2, 3: 3})); s != nil {
 		t.Error("Error Add", s)
 	}
 	if !s1.Sub(s3).Equal(s1) {
@@ -151,16 +152,16 @@ func TestFilter(t *testing.T) {
 	s := New([]int{6, 7, 8})
 
 	for _, test := range []struct {
-		idxtest, idxtrue Indices
+		idxtest, idxtrue indices.Indices
 	}{
-		{idxtest: s.FilterEQ(7), idxtrue: Indices{1}},
-		{idxtest: s.FilterNEQ(7), idxtrue: Indices{0, 2}},
-		{idxtest: s.FilterGT(7), idxtrue: Indices{2}},
-		{idxtest: s.FilterGTEQ(7), idxtrue: Indices{1, 2}},
-		{idxtest: s.FilterLT(7), idxtrue: Indices{0}},
-		{idxtest: s.FilterLTEQ(7), idxtrue: Indices{0, 1}},
+		{idxtest: s.FilterEQ(7), idxtrue: indices.Indices{1}},
+		{idxtest: s.FilterNEQ(7), idxtrue: indices.Indices{0, 2}},
+		{idxtest: s.FilterGT(7), idxtrue: indices.Indices{2}},
+		{idxtest: s.FilterGTEQ(7), idxtrue: indices.Indices{1, 2}},
+		{idxtest: s.FilterLT(7), idxtrue: indices.Indices{0}},
+		{idxtest: s.FilterLTEQ(7), idxtrue: indices.Indices{0, 1}},
 	} {
-		if !test.idxtest.equal(test.idxtrue) {
+		if !test.idxtest.Equal(test.idxtrue) {
 			t.Error(test.idxtest, "vs", test.idxtrue)
 		}
 	}
@@ -169,7 +170,7 @@ func TestFilter(t *testing.T) {
 func TestSelect(t *testing.T) {
 	s := New([]int{6, 7, 8})
 
-	if !s.Select(Indices{0, 2}).Equal(New(map[Index]int{0: 6, 2: 8})) {
+	if !s.Select(indices.Indices{0, 2}).Equal(New(map[indices.Index]int{0: 6, 2: 8})) {
 		t.Error("Nop")
 	}
 }
