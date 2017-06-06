@@ -333,18 +333,17 @@ func (df *DataFrame) SelectByIndex(indices series.Indices) *DataFrame {
 	return ret
 }
 
-/*
 // AND function looks for common indexes between the two arguments of indexes
-func AND(l1 []int, l2 []int) []int {
-	d1 := map[int]bool{}
-	d2 := map[int]bool{}
-	for _, v := range l1 {
+func AND(idx1 series.Indices, idx2 series.Indices) series.Indices {
+	d1 := map[series.Index]bool{}
+	d2 := map[series.Index]bool{}
+	for _, v := range idx1 {
 		d1[v] = true
 	}
-	for _, v := range l2 {
+	for _, v := range idx2 {
 		d2[v] = true
 	}
-	ret := []int{}
+	ret := series.Indices{}
 	for k := range d1 {
 		_, ok := d2[k]
 		if ok {
@@ -361,34 +360,24 @@ func AND(l1 []int, l2 []int) []int {
 			delete(d2, k)
 		}
 	}
-	sort.Ints(ret)
 	return ret
 }
 
 // OR function looks for indexes that are in first argument or second aregument of indexes
-func OR(l1 []int, l2 []int) []int {
-	d1 := map[int]bool{}
-	d2 := map[int]bool{}
-	for _, v := range l1 {
-		d1[v] = true
+func OR(idx1 series.Indices, idx2 series.Indices) series.Indices {
+	d := map[series.Index]bool{}
+	for _, v := range idx1 {
+		d[v] = true
 	}
-	for _, v := range l2 {
-		d2[v] = true
+	for _, v := range idx2 {
+		d[v] = true
 	}
-	ret := []int{}
-	for k := range d1 {
+	ret := series.Indices{}
+	for k := range d {
 		ret = append(ret, k)
-		delete(d1, k)
-		delete(d2, k)
 	}
-	for k := range d2 {
-		ret = append(ret, k)
-		delete(d1, k)
-		delete(d2, k)
-	}
-	sort.Ints(ret)
 	return ret
-}*/
+}
 
 // Apply function apply a function on dataframe
 // To Do
