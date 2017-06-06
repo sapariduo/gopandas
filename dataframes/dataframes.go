@@ -334,52 +334,6 @@ func (df *DataFrame) SelectByIndex(indices indices.Indices) *DataFrame {
 	return ret
 }
 
-// AND function looks for common indexes between the two arguments of indexes
-func AND(idx1 indices.Indices, idx2 indices.Indices) indices.Indices {
-	d1 := map[indices.Index]bool{}
-	d2 := map[indices.Index]bool{}
-	for _, v := range idx1 {
-		d1[v] = true
-	}
-	for _, v := range idx2 {
-		d2[v] = true
-	}
-	ret := indices.Indices{}
-	for k := range d1 {
-		_, ok := d2[k]
-		if ok {
-			ret = append(ret, k)
-			delete(d1, k)
-			delete(d2, k)
-		}
-	}
-	for k := range d2 {
-		_, ok := d1[k]
-		if ok {
-			ret = append(ret, k)
-			delete(d1, k)
-			delete(d2, k)
-		}
-	}
-	return ret
-}
-
-// OR function looks for indexes that are in first argument or second aregument of indexes
-func OR(idx1 indices.Indices, idx2 indices.Indices) indices.Indices {
-	d := map[indices.Index]bool{}
-	for _, v := range idx1 {
-		d[v] = true
-	}
-	for _, v := range idx2 {
-		d[v] = true
-	}
-	ret := indices.Indices{}
-	for k := range d {
-		ret = append(ret, k)
-	}
-	return ret
-}
-
 // Apply function apply a function on dataframe
 // To Do
 func (df *DataFrame) Apply(f func(types.C) types.C) {
