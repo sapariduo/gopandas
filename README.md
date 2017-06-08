@@ -210,7 +210,7 @@ fmt.Print(df.Select("A", "B"))
 +---------+---------+--------+
 ```
 
-- It's easy to add series with the AddSeries methods:
+- It's easy to add series with the AddSeries method:
 
 ```go
 df.AddSeries("D", series.New([]float64{4.4, 3.3, 2.2, 1.1}))
@@ -258,7 +258,16 @@ fmt.Print(df)
 |       1 |       1 | Nan |                         1 |    1.65 |
 |       2 |     1.5 | Nan |                       Nan |     1.1 |
 +---------+---------+-----+---------------------------+---------+
+| COUNT:3 | numeric | nan |         multiple          |+---------+---------+-----+---------------------------+---------+
+|  Index  |    A    |  B  |             C             |    D    |
++---------+---------+-----+---------------------------+---------+
+|       0 |     0.5 | Nan | 2017-06-08T12:36:17+02:00 |     2.2 |
+|       1 |       1 | Nan |                         1 |    1.65 |
+|       2 |     1.5 | Nan |                       Nan |     1.1 |
++---------+---------+-----+---------------------------+---------+
 | COUNT:3 | numeric | nan |         multiple          | numeric |
++---------+---------+-----+---------------------------+---------+
+ numeric |
 +---------+---------+-----+---------------------------+---------+
 
 ```
@@ -273,4 +282,4 @@ Gopandas manages few types representing the most common types:
 - String for string (constructed over string)
 - Nan for Not A Number (constructed over string)
 
-**Note**: All Types of Gopandas implement the gopandas/types.C interface
+**Note**: All Types of Gopandas implement the gopandas types.C interface
