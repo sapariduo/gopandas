@@ -2,20 +2,20 @@ Gopandas is an experimental golang package that aims to use "R/Python DataFrames
 This package is full inspirated by the pandas package in python and try to reproduce some of his functionalities as:
 
 - Have a structure of data organized in columns (called a DataFrame)
-- Create a DataFrame from a CSV or JSON file (IN PROGRESS)
-- Convert a DataFrame into CSV or JSON file (TO DO)
-- Selection by columns
-- Filtering by logical operator as AND, OR, GREAT, LESS, EQUAL (TO DO)
-- Group by (TO DO)
-- Join (TO DO)
-- Apply functions (TO DO)
-- Statistical functions (TO DO)
+- [x] Create a DataFrame from a csv file (done)
+- [] Convert a DataFrame into csv and json file (to do)
+- [x] Selection by columns
+- [x] Filtering by logical operators
+- [] Group by
+- [] Join
+- [x] Apply functions
+- [] Statistical functions
 
 This package has been develop with the intention to be usable by machine learning packages in go.
 
 **Output representation of a dataframe use the [github.com/olekukonko/tablewriter](https://github.com/olekukonko/tablewriter) package**
 
-**/!\ THIS PACKAGE IS STILL UNDER DEVELOPMENT. A LOT OF FUNCTIONALITIES IS MISSING AND/OR COULD BE CHANGED /!\ **
+**/!\ THIS PACKAGE IS STILL UNDER HEAVY DEVELOPMENT /!\ **
 
 # Installation
 
@@ -61,7 +61,7 @@ Series are basically simple ordered maps of values with indices as keys
 Series can be constructed with maps or slices of values. Maps are used as input if there is a need to specify the indices of the values. Indices are empty interfaces so feel free to use what you want. If slices are used the indices will be the positions in the slices of the values.
 Gopandas will convert automatically all types that are compatibles with the gopandas types (see section types). 
 
-```
+```go
 import
     (
     "fmt"
@@ -84,7 +84,7 @@ Series:{one:1, 2:two}
 
 - You can check types insides a series with Types method, this will give you a simple summary
 
-```
+```go
 fmt.Println(s1.Types())
 fmt.Println(s2.Types())
 //output:
@@ -93,7 +93,7 @@ map[string:1 numeric:1]
 ```
 
 If you want just the unique result of the type of the series, use the Type method:
-```
+```go
 fmt.Println(s1.Type())
 fmt.Println(s2.Type())
 //outpout:
@@ -102,7 +102,7 @@ multiple
 ```
 
 - You can have the number of occurences by values inside a series with ValuesCount method
-```
+```go
 fmt.Println(series.New([]float64{1.1,1.2,1.3,1.4,1.3,1.2}).ValuesCount())
 //output:
 map[1.1:1 1.3:2 1.4:1 1.2:2]
@@ -111,7 +111,7 @@ map[1.1:1 1.3:2 1.4:1 1.2:2]
 - You can apply function on series with method Apply. You need to pass a func(types.C) types.C, and it returns
 a new series with values modified by the function:
 
-```
+```go
 fmt.Print(
     series.New([]float64{1.1, 1.2}).Apply(
         func(c types.C) types.C {
@@ -123,7 +123,7 @@ Series:{0:2.1, 1:2.2}
 ```
 
 - You can also do basic operations between 2 series as for example:
-```
+```go
 fmt.Print(series.New([]int{1,2,3}).Sub(series.New([]int{1,2,3})))
 
 //ouput:
@@ -131,13 +131,13 @@ Series:{0:0, 1:0, 2:0}
 ```
 
 - You can calculate Sum and Mean of a series:
-```
+```go
 sum := s1.Sum()
 mean := s1.Mean()
 ```
 
 - You can sort the series either by ascending or descending order. The Sort and Reverse methods modifies series instead of returning a new one
-```
+```go
 s := series.New([]float64{1.1, 1.2, -1.0})
 s.Sort()
 fmt.Print(s)
@@ -152,7 +152,7 @@ Series:{1:1.2, 0:1.1, 2:-1}
 
 - You can create a dataFrame from scratch with the New method:
 
-```
+```go
 df := dataframes.New([]string{"A", "B"}, []*series.Series{
     series.New([]int{1, 2, 3, 4}),
     series.New([]string{"one", "two", "three", "four"}),
@@ -173,7 +173,7 @@ fmt.Print(df)
 
 - You can get a simple statistical description by using the Describe method:
 
-```
+```go
 fmt.Print(df.Describe())
 //ouput
 +---------+---------+----------+
@@ -189,7 +189,7 @@ fmt.Print(df.Describe())
 ```
 
 - It's possible to select only a subset of columns with the Select method:
-```
+```go
 df := dataframes.New([]string{"A", "B", "C"}, []*series.Series{
     series.New([]int{1, 2, 3, 4}),
     series.New([]string{"one", "two", "three", "four"}),
