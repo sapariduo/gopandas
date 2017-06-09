@@ -16,7 +16,7 @@ This package has been develop with the intention to be usable by machine learnin
 
 **Output representation of a dataframe use the [github.com/olekukonko/tablewriter](https://github.com/olekukonko/tablewriter) package**
 
-**/!\ THIS PACKAGE IS STILL UNDER HEAVY DEVELOPMENT /!\ **
+**THIS PACKAGE IS STILL UNDER HEAVY DEVELOPMENT**
 
 # Installation
 
