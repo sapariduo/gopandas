@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 
 // DataFrame is the structure of a dataframe, Data are avaibable with Df attribute
 // Final goal is to have all attributes in private.
+
 type DataFrame struct {
 	Columns []string
 	Indices indices.Indices
@@ -346,4 +348,30 @@ func checkerr(e error) {
 	if e != nil {
 		log.Panic(e)
 	}
+}
+
+func (df *DataFrame) GroupBy(column string) *Groups {
+	dfcolumns := df.Columns
+	sort.Strings(dfcolumns)
+
+	i := sort.SearchStrings(dfcolumns, column)
+	if i < len(dfcolumns) && dfcolumns[i] != column {
+		fmt.Printf("Error: No column available")
+		return nil
+	}
+
+	ret := NewGroup(column, df)
+	for c := range dfcolumns {
+		if df.Columns[c] != column {
+			ret.Columns = append(ret.Columns, df.Columns[c])
+		}
+	}
+
+	grouper := df.Df[column]
+
+	for k, v := range grouper.Series {
+		ret.Group[v] = append(ret.Group[v], k)
+	}
+
+	return ret
 }

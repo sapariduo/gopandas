@@ -40,7 +40,7 @@ func (s *Series) Set(i indices.Index, v interface{}) error {
 
 func (s *Series) Replace(i indices.Index, v interface{}) error {
 	if _, ok := s.Get(i); !ok {
-		return fmt.Errorf("Index %v doesn't exist, impossible to replace it's value")
+		return fmt.Errorf("Index %v doesn't exist, impossible to replace it's value", i)
 	}
 	switch v.(type) {
 	case types.C:
