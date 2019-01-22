@@ -5,6 +5,7 @@ import (
 	"gopandas/indices"
 	"gopandas/types"
 	"log"
+	"math"
 	"sort"
 	"strings"
 	"time"
@@ -12,7 +13,6 @@ import (
 
 // Series Type
 //type Series map[indices.Index]types.C
-
 type Series struct {
 	Series  map[indices.Index]types.C
 	Indices indices.Indices
@@ -90,11 +90,12 @@ func (s *Series) ReIndex(idx indices.Indices) {
 	s.Indices = newIndices
 }
 
+//NewEmpty creates empty Series
 func NewEmpty() *Series {
 	return &Series{Series: map[indices.Index]types.C{}, Indices: indices.Indices{}}
 }
 
-// Creates a new serie by passing map or slice
+//New Creates a new serie by passing map or slice
 func New(values interface{}) *Series {
 	ret := &Series{Series: map[indices.Index]types.C{}, Indices: indices.Indices{}}
 
@@ -146,7 +147,7 @@ func New(values interface{}) *Series {
 	return ret
 }
 
-// Returns the summary of each type inside the series
+//Types methods Returns the summary of each type inside the series
 func (s *Series) Types() map[types.Type]int {
 	ret := map[types.Type]int{}
 	for _, v := range s.Series {
@@ -158,7 +159,7 @@ func (s *Series) Types() map[types.Type]int {
 	return ret
 }
 
-// Return the type of series
+//Type Return the type of series
 func (s *Series) Type() types.Type {
 	res := s.Types()
 	var t types.Type
@@ -215,7 +216,7 @@ func (s *Series) String() string {
 	return ret
 }
 
-// Compare if two series are equal
+//Equal method Compare if two series are equal
 func (s1 *Series) Equal(s2 *Series) bool {
 	if s1.Len() != s2.Len() {
 		return false
@@ -235,12 +236,12 @@ func (s1 *Series) Equal(s2 *Series) bool {
 	return true
 }
 
-// Returns a slice of series's indices
+//GetIndices Returns a slice of series's indices
 func (s *Series) GetIndices() indices.Indices {
 	return s.Indices
 }
 
-// Returns a slice of series's values
+//GetValues Returns a slice of series's values
 func (s *Series) GetValues() []types.C {
 	ret := make([]types.C, s.Len())
 	for i, index := range s.Indices {
@@ -369,21 +370,21 @@ func (s *Series) Swap(i, j int) {
 }
 
 func (s *Series) Less(i, j int) bool {
-	index_i, index_j := s.Indices[i], s.Indices[j]
-	return s.Series[index_i].Less(s.Series[index_j])
+	indexI, indexJ := s.Indices[i], s.Indices[j]
+	return s.Series[indexI].Less(s.Series[indexJ])
 }
 
-//Sort by values in ascending order
+//Sort is Sort by values in ascending order
 func (s *Series) Sort() {
 	sort.Sort(s)
 }
 
-//Sort by values in descending order
+//Reverse is Sort by values in descending order
 func (s *Series) Reverse() {
 	sort.Sort(sort.Reverse(s))
 }
 
-// Basic implementation of max
+//Max Basic implementation of max
 func (s Series) Max() types.C {
 	i := true
 	var max types.C
@@ -400,7 +401,7 @@ func (s Series) Max() types.C {
 	return max
 }
 
-// Basic implementation of min
+//Min Basic implementation of min
 func (s Series) Min() types.C {
 	i := true
 	var min types.C
@@ -432,7 +433,7 @@ func (s Series) Sum() types.C {
 	return sum
 }
 
-// Returns the mean of values
+//Mean Returns the mean of values
 func (s Series) Mean() types.C {
 	sum := s.Sum()
 	return sum.Div(types.Numeric(s.Len()))
@@ -450,21 +451,103 @@ func (s *Series) Select(indices indices.Indices) *Series {
 	return ret
 }
 
-// func (s Series) Median() types.C {
-// 	median := types.NewC(nil)
-// 	val := s.GetValues()
-// 	sort.Sort(val)
-// 	l := len(s.Series)
-// 	if l == 0 {
-// 		return types.NewNan()
-// 	} else if l%2 == 0 {
-// 		fmt.Println(l % 2)
-// 		fmt.Println(l / 2)
-// 		median = s.Select(indices.Indices{l/2 - 1, l / 2}).Mean()
-// 	} else {
-// 		fmt.Println(l / 2)
-// 		median = s.Series[l/2]
-// 	}
+//Median return median value of series
+//It will return Nan for other types than NUMERIC
+func (s Series) Median() types.C {
+	// median := types.NewC(nil)
+	s.Sort()
+	vals := s.GetValues()
+	median := median(vals)
+	return median
+}
 
-// 	return median
-// }
+func (s Series) Quantile(Q string) types.C {
+	Qx := types.NewC(nil)
+	s.Sort()
+	vals := s.GetValues()
+	il := len(vals)
+	if il == 0 {
+		return types.NewNan()
+	}
+
+	// Find the cutoff places depeding on if
+	// the input slice length is even or odd
+	var c1 int
+	var c2 int
+	if il%2 == 0 {
+		c1 = il / 2
+		c2 = il / 2
+	} else {
+		c1 = (il - 1) / 2
+		c2 = c1 + 1
+	}
+
+	switch Q {
+	case "Q1":
+		Qx = median(vals[:c1])
+	case "Q2":
+		Qx = median(vals)
+	case "Q3":
+		Qx = median(vals[c2:])
+	default:
+		Qx = types.NewNan()
+	}
+
+	return Qx
+}
+
+func (s Series) StdDev() types.C {
+	if s.Len() == 0 {
+		return types.NewNan()
+	}
+
+	pv := variance(&s)
+	if pv.Type() != types.NUMERIC {
+		return types.NewNan()
+	}
+
+	sd := math.Pow(float64(pv.(types.Numeric)), 0.5)
+
+	return types.Numeric(sd)
+
+}
+
+func median(a []types.C) types.C {
+	il := len(a)
+	if il == 0 {
+		return types.NewNan()
+	}
+
+	if il%2 == 0 {
+		sum := a[il/2-1].(types.C).Add(a[il/2].(types.C))
+		median := sum.Div(types.Numeric(2))
+		return median
+	} else {
+		switch a[il/2].Type() {
+		case types.NUMERIC:
+			median := a[il/2].(types.C)
+			return median
+		default:
+			median := types.NewNan()
+			return median
+		}
+	}
+}
+
+func variance(input *Series) (variance types.C) {
+	if input.Len() == 0 {
+		return types.NewNan()
+	}
+
+	m := input.Mean()
+	if m.Type() != types.NUMERIC {
+		return types.NewNan()
+	}
+	variance = types.Numeric(0)
+	for _, v := range input.Series {
+		variance = variance.Add(v.Sub(m).Mul(v.Sub(m)))
+	}
+
+	return variance.Div(types.Numeric(input.Len()))
+
+}

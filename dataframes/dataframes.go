@@ -131,10 +131,14 @@ func (df *DataFrame) Describe() *DataFrame {
 	ret := NewEmpty()
 	for _, c := range df.Columns {
 		ret.AddSeries(c, series.New(map[indices.Index]interface{}{
-			"min":   df.Df[c].Min(),
-			"max":   df.Df[c].Max(),
-			"mean":  df.Df[c].Mean(),
-			"count": df.Len(),
+			"Min":    df.Df[c].Min(),
+			"Max":    df.Df[c].Max(),
+			"Mean":   df.Df[c].Mean(),
+			"StdDev": df.Df[c].StdDev(),
+			"Q1":     df.Df[c].Quantile("Q1"),
+			"Q2":     df.Df[c].Quantile("Q2"),
+			"Q3":     df.Df[c].Quantile("Q3"),
+			"Count":  df.Len(),
 		}))
 	}
 	return ret

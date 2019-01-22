@@ -55,8 +55,8 @@ func TestNew(t *testing.T) {
 func TestDataFrame_Describe(t *testing.T) {
 
 	df := New([]string{"working", "person", "unit"}, []*series.Series{workHour, person, department})
-	working := df.Select("working", "person")
-	fmt.Println(working.Describe())
+	// working := df.Select("working", "person")
+	fmt.Println(df.GroupBy("unit").Sum().Describe())
 	// type fields struct {
 	// 	Columns []string
 	// 	Indices indices.Indices

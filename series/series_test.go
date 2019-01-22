@@ -216,9 +216,34 @@ func TestSumMean(t *testing.T) {
 }
 
 func TestSeries_Median(t *testing.T) {
-	s := New([]float64{1.1, 2, 3, 4, -1})
-	fmt.Println(s.Median())
+	s1 := New([]float64{-5, -1, 1.1, 2, 3, 3, 4, 6, 7, 7, 10, 17})
+	s2 := New([]string{"c", "b", "a"})
+	med1 := s1.Median()
+	med2 := s2.Median()
+	s1.Sort()
+	s2.Sort()
+	fmt.Println(s1)
+	fmt.Println(s2)
 
-	s.Sort()
-	fmt.Println(s)
+	fmt.Printf("%v, %T\n", med1, med1)
+	fmt.Printf("%v, %T\n", med2, med2)
+}
+
+func TestSeries_Quantile(t *testing.T) {
+	// s1 := New([]float64{-5, -1, 1.1, 2, 3, 3, 4, 6, 7, 7, 10, 17})
+	s1 := New([]string{"c", "b", "a", "x", "alfa", "d"})
+	Q1 := s1.Quantile("Q1")
+	Q2 := s1.Quantile("Q2")
+	Q3 := s1.Quantile("Q3")
+	Median := s1.Median()
+	fmt.Printf("Q1 = %v; Q2 = %v Q3 = %v; Median = %v", Q1, Q2, Q3, Median)
+
+}
+
+func Test_variance(t *testing.T) {
+	s1 := New([]float64{-5, -1, 1.1, 2, 3, 3, 4, 6, 7, 7, 10, 17})
+	x := variance(s1)
+	fmt.Println(x)
+
+	fmt.Println(s1.StdDev())
 }
