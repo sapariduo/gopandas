@@ -449,3 +449,22 @@ func (s *Series) Select(indices indices.Indices) *Series {
 	ret.ReIndex(indices)
 	return ret
 }
+
+// func (s Series) Median() types.C {
+// 	median := types.NewC(nil)
+// 	val := s.GetValues()
+// 	sort.Sort(val)
+// 	l := len(s.Series)
+// 	if l == 0 {
+// 		return types.NewNan()
+// 	} else if l%2 == 0 {
+// 		fmt.Println(l % 2)
+// 		fmt.Println(l / 2)
+// 		median = s.Select(indices.Indices{l/2 - 1, l / 2}).Mean()
+// 	} else {
+// 		fmt.Println(l / 2)
+// 		median = s.Series[l/2]
+// 	}
+
+// 	return median
+// }

@@ -3,6 +3,7 @@ package dataframes
 import (
 	"bytes"
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"gopandas/indices"
 	"gopandas/series"
@@ -10,6 +11,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"reflect"
 	"sort"
 	"strconv"
 	"time"
@@ -240,6 +242,51 @@ func (df *DataFrame) String() string {
 	raw, err := ioutil.ReadAll(b)
 	checkerr(err)
 	return string(raw)
+}
+
+//Maps create map representation of Dataframe
+func (df *DataFrame) Maps() map[string]interface{} {
+	root := make(map[string]interface{})
+	colnames := df.Columns
+	for _, x := range colnames {
+		maps := make(map[string]interface{})
+		for _, v := range df.Indices {
+			vi := fmt.Sprintf("%v", reflect.ValueOf(v))
+			vx := df.Df[x].Series[v]
+			switch vx.Type() {
+			case types.NUMERIC:
+				maps[vi] = float64(vx.(types.Numeric))
+
+			case types.STRING:
+				maps[vi] = vx
+			default:
+				maps[vi] = vx
+			}
+		}
+		root[x] = maps
+	}
+	return root
+}
+
+//ToJson create JSON from dataframe
+func (df *DataFrame) ToJson() ([]byte, error) {
+	maps := make([]map[string]interface{}, df.NbLines)
+	colnames := df.Columns
+	for i := 0; i < df.NbLines; i++ {
+		m := make(map[string]interface{})
+		for _, v := range colnames {
+			val := df.Df[v].Series[i]
+			m[v] = val
+		}
+		maps[i] = m
+	}
+
+	ret, err := json.Marshal(maps)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
 }
 
 // Select function is used to select colums and return a dataframe with selected columns

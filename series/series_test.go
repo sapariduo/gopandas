@@ -1,6 +1,7 @@
 package series
 
 import (
+	"fmt"
 	"gopandas/indices"
 	"gopandas/types"
 	"testing"
@@ -212,4 +213,12 @@ func TestSumMean(t *testing.T) {
 	if s.Mean().NotEqual(types.Numeric(2)) {
 		t.Error("Error Mean")
 	}
+}
+
+func TestSeries_Median(t *testing.T) {
+	s := New([]float64{1.1, 2, 3, 4, -1})
+	fmt.Println(s.Median())
+
+	s.Sort()
+	fmt.Println(s)
 }

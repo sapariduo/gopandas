@@ -1,6 +1,7 @@
 package dataframes
 
 import (
+	"encoding/json"
 	"fmt"
 	"gopandas/indices"
 	"gopandas/series"
@@ -124,4 +125,42 @@ func TestDataFrame_SelectByIndex(t *testing.T) {
 
 	fmt.Println(ret)
 
+}
+
+func TestDataFrame_ToJson(t *testing.T) {
+	df := New([]string{"working", "person", "unit"}, []*series.Series{workHour, person, department})
+	js, err := df.ToJson()
+	if err != nil {
+		t.Error("failed to Marshall to json")
+	}
+
+	fmt.Printf("%s\n", js)
+}
+
+func TestDataFrame_Maps(t *testing.T) {
+	df := New([]string{"working", "person", "unit"}, []*series.Series{workHour, person, department})
+	dfg := df.GroupBy("unit").Max()
+	dl := map[string]interface{}{
+		"0": 1,
+		"2": 4,
+	}
+	fmt.Println(dl)
+	js := dfg.Select("working").Maps()
+	// if err != nil {
+	// 	t.Error("failed to Marshall to json")
+	// }
+
+	fmt.Printf("%s\n", js)
+
+	for _, xx := range js {
+		ff := xx.(map[string]interface{})
+		js, err := json.Marshal(ff)
+		if err != nil {
+			fmt.Errorf("error : %v", err)
+		}
+		fmt.Println(string(js))
+		// for _, yy := range ff {
+		// 	fmt.Printf("%+v, %T\n", yy, yy)
+		// }
+	}
 }
