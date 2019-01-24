@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"gopandas/indices"
 	"gopandas/series"
+	"gopandas/types"
+	"math/rand"
 	"reflect"
 	"testing"
 )
@@ -53,36 +55,10 @@ func TestNew(t *testing.T) {
 }
 
 func TestDataFrame_Describe(t *testing.T) {
+	sr := series.New([]float64{-5, -1, 1.1, 2, 3, 3, 4, 6, 7, 7, 10, 17})
+	df := New([]string{"sales"}, []*series.Series{sr})
+	fmt.Println(df.Describe())
 
-	df := New([]string{"working", "person", "unit"}, []*series.Series{workHour, person, department})
-	// working := df.Select("working", "person")
-	fmt.Println(df.GroupBy("unit").Sum().Describe())
-	// type fields struct {
-	// 	Columns []string
-	// 	Indices indices.Indices
-	// 	Df      map[string]*series.Series
-	// 	NbLines int
-	// }
-	// tests := []struct {
-	// 	name   string
-	// 	fields fields
-	// 	want   *DataFrame
-	// }{
-	// 	// TODO: Add test cases.
-	// }
-	// for _, tt := range tests {
-	// 	t.Run(tt.name, func(t *testing.T) {
-	// 		df := &DataFrame{
-	// 			Columns: tt.fields.Columns,
-	// 			Indices: tt.fields.Indices,
-	// 			Df:      tt.fields.Df,
-	// 			NbLines: tt.fields.NbLines,
-	// 		}
-	// 		if got := df.Describe(); !reflect.DeepEqual(got, tt.want) {
-	// 			t.Errorf("DataFrame.Describe() = %v, want %v", got, tt.want)
-	// 		}
-	// 	})
-	// }
 }
 
 func TestIdxCollection(t *testing.T) {
@@ -163,4 +139,43 @@ func TestDataFrame_Maps(t *testing.T) {
 		// 	fmt.Printf("%+v, %T\n", yy, yy)
 		// }
 	}
+}
+
+func Test_MixDataColumn(t *testing.T) {
+	s := series.New(map[indices.Index]interface{}{
+		0: 1,
+		1: 1,
+		2: 5,
+		3: types.NewNan(),
+		4: 7,
+		5: 2,
+	})
+
+	df := NewEmpty()
+	df.AddSeries("mix", s)
+	dfg := df.Describe()
+	dfs := df.Df["mix"].ValuesCount()
+	fmt.Println(df)
+	fmt.Println(dfg)
+	fmt.Println(dfs)
+}
+
+func Test_IterateSeries(t *testing.T) {
+	s := series.NewEmpty()
+
+	for idx := 0; idx < 10; idx++ {
+		switch idx % 2 {
+		case 0:
+			s.Set(idx, types.Numeric((rand.Float64()*5)+5))
+		default:
+			s.Set(idx, types.NewNan())
+		}
+
+	}
+
+	fmt.Println(s)
+
+	df := NewEmpty()
+	df.AddSeries("numbers", s)
+	fmt.Println(df.Df["numbers"].Sum())
 }
