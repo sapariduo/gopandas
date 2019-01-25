@@ -247,3 +247,15 @@ func Test_variance(t *testing.T) {
 
 	fmt.Println(s1.StdDev())
 }
+
+func Test_MixIntNan(t *testing.T) {
+	s := New(map[indices.Index]interface{}{
+		0: 1,
+		1: 1,
+		2: 5,
+		3: types.NewNan(),
+		4: 2,
+	})
+
+	fmt.Println(s)
+}

@@ -8,12 +8,14 @@ import (
 	"gopandas/indices"
 	"gopandas/series"
 	"gopandas/types"
+	"gopandas/utils"
 	"io/ioutil"
 	"log"
 	"os"
 	"reflect"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/olekukonko/tablewriter"
@@ -401,27 +403,63 @@ func checkerr(e error) {
 	}
 }
 
-func (df *DataFrame) GroupBy(column string) *Groups {
+// func (df *DataFrame) GroupBy(column string) *Groups {
+// 	dfcolumns := df.Columns
+// 	sort.Strings(dfcolumns)
+
+// 	i := sort.SearchStrings(dfcolumns, column)
+// 	if i < len(dfcolumns) && dfcolumns[i] != column {
+// 		fmt.Printf("Error: No column available")
+// 		return nil
+// 	}
+
+// 	ret := NewGroup(df, column)
+// 	for c := range dfcolumns {
+// 		if df.Columns[c] != column {
+// 			ret.Columns = append(ret.Columns, df.Columns[c])
+// 		}
+// 	}
+
+// 	grouper := df.Df[column]
+
+// 	for k, v := range grouper.Series {
+// 		ret.Group[v] = append(ret.Group[v], k)
+// 	}
+
+// 	return ret
+// }
+
+func (df *DataFrame) GroupBy(columns ...string) *Groups {
 	dfcolumns := df.Columns
 	sort.Strings(dfcolumns)
-
-	i := sort.SearchStrings(dfcolumns, column)
-	if i < len(dfcolumns) && dfcolumns[i] != column {
-		fmt.Printf("Error: No column available")
-		return nil
+	for x := 0; x < len(columns); x++ {
+		i := sort.SearchStrings(dfcolumns, columns[x])
+		if i < len(dfcolumns) && dfcolumns[i] != columns[x] {
+			fmt.Printf("Error: No column available")
+			return nil
+		}
 	}
+	scr := df.Select(columns...)
+	ret := NewGroup(df, columns...)
+	for c, v := range dfcolumns {
 
-	ret := NewGroup(column, df)
-	for c := range dfcolumns {
-		if df.Columns[c] != column {
+		if !utils.Contains(columns, v) {
 			ret.Columns = append(ret.Columns, df.Columns[c])
 		}
 	}
 
-	grouper := df.Df[column]
+	for ind, val := range scr.Indices {
+		keys := []string{}
+		for _, x := range ret.Grouper {
+			key, ok := scr.Df[x].Series[val].(types.String)
+			if !ok {
+				key = "NaN"
+			}
 
-	for k, v := range grouper.Series {
-		ret.Group[v] = append(ret.Group[v], k)
+			keys = append(keys, string(key))
+		}
+		idxkeys := types.String(strings.Join(keys, "_"))
+		ret.Group[idxkeys] = append(ret.Group[idxkeys], ind)
 	}
 
 	return ret

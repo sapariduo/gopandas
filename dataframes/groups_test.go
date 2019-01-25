@@ -8,7 +8,7 @@ import (
 
 func TestGroups_Max(t *testing.T) {
 	df := New([]string{"working", "person", "unit"}, []*series.Series{workHour, person, department})
-	dfg := df.GroupBy("unit")
+	dfg := df.GroupBy("unit", "person")
 	fmt.Println(dfg.Max())
 }
 

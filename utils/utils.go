@@ -41,3 +41,12 @@ func (d DateRange) ToIndex() indices.Indices {
 	}
 	return ret
 }
+
+func Contains(a []string, x string) bool {
+	for _, n := range a {
+		if x == n {
+			return true
+		}
+	}
+	return false
+}

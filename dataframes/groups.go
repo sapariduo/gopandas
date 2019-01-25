@@ -12,14 +12,15 @@ import (
 //type Group map[string]types.C
 type Groups struct {
 	Columns []string
+	Grouper []string
 	Group   map[types.C][]indices.Index
 	Df      *DataFrame
 }
 
 //NewGroup Create New Group based on column name
 //TODO: Make multi column grouping
-func NewGroup(column string, dataframe *DataFrame) *Groups {
-	ret := &Groups{Columns: []string{}, Group: make(map[types.C][]indices.Index), Df: dataframe}
+func NewGroup(dataframe *DataFrame, columns ...string) *Groups {
+	ret := &Groups{Columns: []string{}, Grouper: columns, Group: make(map[types.C][]indices.Index), Df: dataframe}
 	return ret
 }
 

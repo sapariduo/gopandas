@@ -162,6 +162,7 @@ func Test_MixDataColumn(t *testing.T) {
 
 func Test_IterateSeries(t *testing.T) {
 	s := series.NewEmpty()
+	l := series.NewEmpty()
 
 	for idx := 0; idx < 10; idx++ {
 		switch idx % 2 {
@@ -173,9 +174,70 @@ func Test_IterateSeries(t *testing.T) {
 
 	}
 
+	for ldx := 0; ldx < 10; ldx++ {
+		switch ldx % 3 {
+		case 1:
+			l.Set(ldx, types.String("Magang"))
+		case 2:
+			l.Set(ldx, types.String("Permanen"))
+		default:
+			l.Set(ldx, types.NewNan())
+		}
+
+	}
+
 	fmt.Println(s)
 
 	df := NewEmpty()
 	df.AddSeries("numbers", s)
-	fmt.Println(df.Df["numbers"].Sum())
+	df.AddSeries("position", l)
+	dfg := df.GroupBy("position")
+	fmt.Println(dfg.Info())
+	fmt.Println(df.Select("numbers").Describe())
+}
+
+func TestDataFrame_GroupMulti(t *testing.T) {
+	s := series.NewEmpty()
+	l := series.NewEmpty()
+	m := series.NewEmpty()
+
+	for idx := 0; idx < 10; idx++ {
+		switch idx % 2 {
+		case 0:
+			s.Set(idx, types.Numeric((rand.Float64()*5)+5))
+		default:
+			s.Set(idx, types.Numeric(rand.Intn(10)))
+		}
+
+	}
+
+	for ldx := 0; ldx < 10; ldx++ {
+		switch ldx % 3 {
+		case 1:
+			l.Set(ldx, types.NewNan())
+		case 2:
+			l.Set(ldx, types.String("Permanen"))
+		default:
+			l.Set(ldx, types.String("Training"))
+		}
+
+	}
+
+	for sdx := 0; sdx < 10; sdx++ {
+		switch sdx % 2 {
+		case 0:
+			m.Set(sdx, types.String("single"))
+		default:
+			m.Set(sdx, types.String("married"))
+		}
+
+	}
+
+	df := NewEmpty()
+	df.AddSeries("numbers", s)
+	df.AddSeries("position", l)
+	df.AddSeries("status", m)
+	dfg := df.GroupBy("status", "position")
+	fmt.Println(dfg.Info())
+	fmt.Println(dfg.Sum().Maps())
 }
