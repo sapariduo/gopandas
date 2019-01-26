@@ -448,7 +448,7 @@ func (df *DataFrame) GroupBy(columns ...string) *Groups {
 		}
 	}
 
-	for ind, val := range scr.Indices {
+	for _, val := range scr.Indices {
 		keys := []string{}
 		for _, x := range ret.Grouper {
 			key, ok := scr.Df[x].Series[val].(types.String)
@@ -458,8 +458,8 @@ func (df *DataFrame) GroupBy(columns ...string) *Groups {
 
 			keys = append(keys, string(key))
 		}
-		idxkeys := types.String(strings.Join(keys, "_"))
-		ret.Group[idxkeys] = append(ret.Group[idxkeys], ind)
+		idxkeys := types.String(strings.Join(keys, ", "))
+		ret.Group[idxkeys] = append(ret.Group[idxkeys], val)
 	}
 
 	return ret
