@@ -1,6 +1,7 @@
 package dataframes
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"gopandas/indices"
@@ -13,7 +14,7 @@ import (
 
 var (
 	workHour   = series.New([]int{8, 10, 10, 13, 11, 12, 15})
-	person     = series.New([]string{"ali", "manan", "korak", "budi", "tolhal", "udin", "badu"})
+	person     = series.New([]string{"ali", "manan", "korak", "budi", "tolhal hasan", "udin", "badu"})
 	department = series.New([]string{"sales", "operation", "sales", "sales", "marketing", "finance", "marketing"})
 	combine    = series.New(map[indices.Index]interface{}{"satu": []int{1, 2}, "dua": []int{3, 4}})
 )
@@ -76,7 +77,8 @@ func TestIdxCollection(t *testing.T) {
 func TestDataFrame_GroupBy(t *testing.T) {
 	df := New([]string{"working", "person", "unit"}, []*series.Series{workHour, person, department})
 	gdf := df.GroupBy("unit")
-	fmt.Println(gdf)
+	fmt.Printf("\n%s", gdf.Info())
+	fmt.Printf("\n%s", gdf.Sum())
 
 }
 
@@ -132,7 +134,7 @@ func TestDataFrame_Maps(t *testing.T) {
 		ff := xx.(map[string]interface{})
 		js, err := json.Marshal(ff)
 		if err != nil {
-			fmt.Errorf("error : %v", err)
+			fmt.Printf("error : %v", err)
 		}
 		fmt.Println(string(js))
 		// for _, yy := range ff {
@@ -237,7 +239,31 @@ func TestDataFrame_GroupMulti(t *testing.T) {
 	df.AddSeries("numbers", s)
 	df.AddSeries("position", l)
 	df.AddSeries("status", m)
+
+	fmt.Println(df.Indices)
 	dfg := df.GroupBy("status", "position")
 	fmt.Println(dfg.Info())
 	fmt.Println(dfg.Sum().Maps())
+}
+
+func TestDataFrame_toCSV(t *testing.T) {
+	buf := new(bytes.Buffer)
+
+	df := New([]string{"working", "person", "unit"}, []*series.Series{workHour, person, department})
+	dfx := df.Select("unit", "person", "working")
+
+	err := dfx.toCSV(buf)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(buf)
+
+	// result := buf.Bytes()
+	// fname := "test.csv"
+	// out, err := os.Create(fname)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// defer out.Close()
+	// out.Write(result)
 }

@@ -8,19 +8,30 @@ import (
 	"reflect"
 )
 
+type Key map[string]types.C
+
+type Keys struct {
+	Key   Key
+	Index []indices.Indices
+}
+
 // Groups Type
 //type Group map[string]types.C
 type Groups struct {
-	Columns []string
-	Grouper []string
+	Keys    []Keys
+	Columns []string //list of columns subject to groping operation
+	Grouper []string //list of columns used for grouping parameter
 	Group   map[types.C][]indices.Index
-	Df      *DataFrame
+	// Group map[interface{}][]indices.Index
+	Df *DataFrame
 }
 
 //NewGroup Create New Group based on column name
 //TODO: Make multi column grouping
 func NewGroup(dataframe *DataFrame, columns ...string) *Groups {
-	ret := &Groups{Columns: []string{}, Grouper: columns, Group: make(map[types.C][]indices.Index), Df: dataframe}
+	// ret := &Groups{Columns: []string{}, Grouper: columns, Group: make(map[types.C][]indices.Index), Df: dataframe}
+	ret := &Groups{Keys: []Keys{}, Columns: []string{}, Grouper: columns, Group: make(map[types.C][]indices.Index), Df: dataframe}
+
 	return ret
 }
 

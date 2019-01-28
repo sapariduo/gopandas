@@ -9,6 +9,7 @@ import (
 	"gopandas/series"
 	"gopandas/types"
 	"gopandas/utils"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -295,6 +296,35 @@ func (df *DataFrame) ToJson() ([]byte, error) {
 	return ret, nil
 }
 
+//toCSV crate csv bytes from Dataframe
+func (df *DataFrame) toCSV(writer io.Writer) error {
+	row := make([]string, 0, len(df.Columns))
+	for _, s := range df.Columns {
+		row = append(row, s)
+	}
+
+	header := make([]string, 0, len(df.Columns))
+	for _, s := range df.Columns {
+		header = append(header, s)
+	}
+
+	w := csv.NewWriter(writer)
+
+	w.Write(header)
+
+	for i := range df.Indices {
+		row = row[:0]
+		for _, col := range df.Columns {
+			row = append(row, fmt.Sprintf("%s", df.Df[col].Series[i]))
+		}
+		w.Write(row)
+	}
+
+	w.Flush()
+	return nil
+
+}
+
 // Select function is used to select colums and return a dataframe with selected columns
 // Warning Select function doesn't make a full copy
 // To change Data you shoud use the Copy function before or after
@@ -403,32 +433,6 @@ func checkerr(e error) {
 	}
 }
 
-// func (df *DataFrame) GroupBy(column string) *Groups {
-// 	dfcolumns := df.Columns
-// 	sort.Strings(dfcolumns)
-
-// 	i := sort.SearchStrings(dfcolumns, column)
-// 	if i < len(dfcolumns) && dfcolumns[i] != column {
-// 		fmt.Printf("Error: No column available")
-// 		return nil
-// 	}
-
-// 	ret := NewGroup(df, column)
-// 	for c := range dfcolumns {
-// 		if df.Columns[c] != column {
-// 			ret.Columns = append(ret.Columns, df.Columns[c])
-// 		}
-// 	}
-
-// 	grouper := df.Df[column]
-
-// 	for k, v := range grouper.Series {
-// 		ret.Group[v] = append(ret.Group[v], k)
-// 	}
-
-// 	return ret
-// }
-
 func (df *DataFrame) GroupBy(columns ...string) *Groups {
 	dfcolumns := df.Columns
 	sort.Strings(dfcolumns)
@@ -448,7 +452,7 @@ func (df *DataFrame) GroupBy(columns ...string) *Groups {
 		}
 	}
 
-	for ind, val := range scr.Indices {
+	for _, val := range scr.Indices {
 		keys := []string{}
 		for _, x := range ret.Grouper {
 			key, ok := scr.Df[x].Series[val].(types.String)
@@ -459,8 +463,59 @@ func (df *DataFrame) GroupBy(columns ...string) *Groups {
 			keys = append(keys, string(key))
 		}
 		idxkeys := types.String(strings.Join(keys, "_"))
-		ret.Group[idxkeys] = append(ret.Group[idxkeys], ind)
+		ret.Group[idxkeys] = append(ret.Group[idxkeys], val)
 	}
 
 	return ret
 }
+
+// func (df *DataFrame) GroupBy(columns ...string) *Groups {
+// 	dfcolumns := df.Columns
+// 	sort.Strings(dfcolumns)
+// 	for x := 0; x < len(columns); x++ {
+// 		i := sort.SearchStrings(dfcolumns, columns[x])
+// 		if i < len(dfcolumns) && dfcolumns[i] != columns[x] {
+// 			fmt.Printf("Error: No column available")
+// 			return nil
+// 		}
+// 	}
+// 	src := df.Select(columns...)
+// 	ret := NewGroup(df, columns...)
+// 	for c, v := range dfcolumns {
+
+// 		if !utils.Contains(columns, v) {
+// 			ret.Columns = append(ret.Columns, df.Columns[c])
+// 		}
+// 	}
+
+// 	for _, idx := range src.Indices {
+// 		fmt.Printf("src.Indices value %v with type %T", idx, idx)
+// 		keys := Keys{Key: make(map[string]types.C)}
+// 		keystring := []string{}
+// 		for _, x := range ret.Grouper {
+// 			key, ok := src.Df[x].Series[idx]
+// 			if !ok {
+// 				key = types.NewNan()
+// 			}
+
+// 			keys.Key[x] = key
+// 		}
+
+// 		for _, x := range keys.Key {
+// 			switch x {
+// 			case x.(types.String):
+// 				keystring = append(keystring, reflect.TypeOf(x).String())
+// 			default:
+// 				keystring = append(keystring, "NaN")
+// 			}
+// 		}
+
+// 		ret.Keys = append(ret.Keys, keys)
+// 		fmt.Println(keystring)
+// 		fmt.Println(ret.Keys)
+// 		dkey := types.String(strings.Join(keystring, "_"))
+// 		ret.Group[dkey] = append(ret.Group[dkey], idx)
+// 	}
+
+// 	return ret
+// }
