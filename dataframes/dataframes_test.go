@@ -16,6 +16,7 @@ var (
 	workHour   = series.New([]int{8, 10, 10, 13, 11, 12, 15})
 	person     = series.New([]string{"ali", "manan", "korak", "budi", "tolhal hasan", "udin", "badu"})
 	department = series.New([]string{"sales", "operation", "sales", "sales", "marketing", "finance", "marketing"})
+	city       = series.New([]string{"Jakarta", "Jakarta", "Bandung", "Bandung", "Bandung", "Jakarta", "Bandung"})
 	combine    = series.New(map[indices.Index]interface{}{"satu": []int{1, 2}, "dua": []int{3, 4}})
 )
 
@@ -75,10 +76,11 @@ func TestIdxCollection(t *testing.T) {
 }
 
 func TestDataFrame_GroupBy(t *testing.T) {
-	df := New([]string{"working", "person", "unit"}, []*series.Series{workHour, person, department})
-	gdf := df.GroupBy("unit")
+	df := New([]string{"working", "person", "unit", "city"}, []*series.Series{workHour, person, department, city})
+	gdf := df.GroupBy("unit", "city")
 	fmt.Printf("\n%s", gdf.Info())
-	fmt.Printf("\n%s", gdf.Sum())
+	fmt.Printf("\n%s", gdf.Max())
+	fmt.Printf("\n%s", gdf.Count())
 
 }
 
