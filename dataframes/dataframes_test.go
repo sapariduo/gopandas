@@ -248,13 +248,13 @@ func TestDataFrame_GroupMulti(t *testing.T) {
 	fmt.Println(dfg.Sum().Maps())
 }
 
-func TestDataFrame_toCSV(t *testing.T) {
+func TestDataFrame_ToCSV(t *testing.T) {
 	buf := new(bytes.Buffer)
 
 	df := New([]string{"working", "person", "unit"}, []*series.Series{workHour, person, department})
 	dfx := df.Select("unit", "person", "working")
 
-	err := dfx.toCSV(buf)
+	err := dfx.ToCSV(buf)
 	if err != nil {
 		fmt.Println(err)
 	}
