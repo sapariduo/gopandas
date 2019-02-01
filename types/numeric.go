@@ -1,5 +1,9 @@
 package types
 
+import (
+	"fmt"
+)
+
 type Numeric float64
 
 func (n Numeric) Add(c C) C {
@@ -107,4 +111,8 @@ func (n Numeric) NotEqual(c C) bool {
 
 func (Numeric) Type() Type {
 	return NUMERIC
+}
+
+func (n Numeric) String() string {
+	return (fmt.Sprintf("%v", float64(n)))
 }

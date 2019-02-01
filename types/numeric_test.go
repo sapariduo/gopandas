@@ -1,6 +1,8 @@
 package types
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestNumericType(t *testing.T) {
 	var s Numeric
@@ -90,5 +92,25 @@ func TestNumericNotEqual(t *testing.T) {
 	}
 	if Numeric(-2).NotEqual(Numeric(-1)) == false {
 		t.Errorf("Error Equal")
+	}
+}
+
+func TestNumeric_String(t *testing.T) {
+	tests := []struct {
+		name string
+		n    Numeric
+		want string
+	}{
+		{name: "test float to string", n: 22222.2222, want: "22222.2222"},
+		{name: "test int to string", n: 23, want: "23"},
+		{name: "test zero to string", n: 0, want: "0"},
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.n.String(); got != tt.want {
+				t.Errorf("Numeric.String() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

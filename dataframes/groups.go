@@ -6,21 +6,33 @@ import (
 	"gopandas/series"
 	"gopandas/types"
 	"reflect"
+	"strings"
 )
+
+type Key map[string]types.C
+
+type Keys struct {
+	Key   Key
+	Index []indices.Indices
+}
 
 // Groups Type
 //type Group map[string]types.C
 type Groups struct {
-	Columns []string
-	Grouper []string
+	Keys    []Keys
+	Columns []string //list of columns subject to groping operation
+	Grouper []string //list of columns used for grouping parameter
 	Group   map[types.C][]indices.Index
-	Df      *DataFrame
+	// Group map[interface{}][]indices.Index
+	Df *DataFrame
 }
 
 //NewGroup Create New Group based on column name
 //TODO: Make multi column grouping
 func NewGroup(dataframe *DataFrame, columns ...string) *Groups {
-	ret := &Groups{Columns: []string{}, Grouper: columns, Group: make(map[types.C][]indices.Index), Df: dataframe}
+	// ret := &Groups{Columns: []string{}, Grouper: columns, Group: make(map[types.C][]indices.Index), Df: dataframe}
+	ret := &Groups{Keys: []Keys{}, Columns: []string{}, Grouper: columns, Group: make(map[types.C][]indices.Index), Df: dataframe}
+
 	return ret
 }
 
@@ -55,6 +67,15 @@ func (grouper *Groups) Max() *DataFrame {
 		ret.AddSeries(x, sr)
 	}
 
+	for i, y := range grouper.Grouper {
+		sr := series.NewEmpty()
+		for k := range grouper.Group {
+			iv := strings.Split(string(k.(types.String)), "_")
+			sr.Set(k, iv[i])
+		}
+		ret.AddSeries(y, sr)
+	}
+
 	return ret
 }
 
@@ -70,6 +91,15 @@ func (grouper *Groups) Min() *DataFrame {
 			sr.Set(k, dfs)
 		}
 		ret.AddSeries(x, sr)
+	}
+
+	for i, y := range grouper.Grouper {
+		sr := series.NewEmpty()
+		for k := range grouper.Group {
+			iv := strings.Split(string(k.(types.String)), "_")
+			sr.Set(k, iv[i])
+		}
+		ret.AddSeries(y, sr)
 	}
 
 	return ret
@@ -89,6 +119,15 @@ func (grouper *Groups) Count() *DataFrame {
 		ret.AddSeries(x, sr)
 	}
 
+	for i, y := range grouper.Grouper {
+		sr := series.NewEmpty()
+		for k := range grouper.Group {
+			iv := strings.Split(string(k.(types.String)), "_")
+			sr.Set(k, iv[i])
+		}
+		ret.AddSeries(y, sr)
+	}
+
 	return ret
 }
 
@@ -106,6 +145,15 @@ func (grouper *Groups) Sum() *DataFrame {
 		ret.AddSeries(x, sr)
 	}
 
+	for i, y := range grouper.Grouper {
+		sr := series.NewEmpty()
+		for k := range grouper.Group {
+			iv := strings.Split(string(k.(types.String)), "_")
+			sr.Set(k, iv[i])
+		}
+		ret.AddSeries(y, sr)
+	}
+
 	return ret
 }
 
@@ -121,6 +169,15 @@ func (grouper *Groups) Mean() *DataFrame {
 			sr.Set(k, dfs)
 		}
 		ret.AddSeries(x, sr)
+	}
+
+	for i, y := range grouper.Grouper {
+		sr := series.NewEmpty()
+		for k := range grouper.Group {
+			iv := strings.Split(string(k.(types.String)), "_")
+			sr.Set(k, iv[i])
+		}
+		ret.AddSeries(y, sr)
 	}
 
 	return ret
