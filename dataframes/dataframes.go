@@ -41,6 +41,8 @@ type ConfigDataFrame struct {
 	TimeLayout string
 }
 
+var compositeChar = "<<|>>"
+
 // Basic Parser of string in a interface{}
 // Can be a float or a time in RFC3339 format {
 // To be completed...
@@ -462,7 +464,7 @@ func (df *DataFrame) GroupBy(columns ...string) *Groups {
 
 			keys = append(keys, string(key))
 		}
-		idxkeys := types.String(strings.Join(keys, "_"))
+		idxkeys := types.String(strings.Join(keys, compositeChar))
 		ret.Group[idxkeys] = append(ret.Group[idxkeys], val)
 	}
 

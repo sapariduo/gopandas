@@ -70,7 +70,7 @@ func (grouper *Groups) Max() *DataFrame {
 	for i, y := range grouper.Grouper {
 		sr := series.NewEmpty()
 		for k := range grouper.Group {
-			iv := strings.Split(string(k.(types.String)), "_")
+			iv := strings.Split(string(k.(types.String)), compositeChar)
 			sr.Set(k, iv[i])
 		}
 		ret.AddSeries(y, sr)
@@ -96,7 +96,7 @@ func (grouper *Groups) Min() *DataFrame {
 	for i, y := range grouper.Grouper {
 		sr := series.NewEmpty()
 		for k := range grouper.Group {
-			iv := strings.Split(string(k.(types.String)), "_")
+			iv := strings.Split(string(k.(types.String)), compositeChar)
 			sr.Set(k, iv[i])
 		}
 		ret.AddSeries(y, sr)
@@ -122,7 +122,7 @@ func (grouper *Groups) Count() *DataFrame {
 	for i, y := range grouper.Grouper {
 		sr := series.NewEmpty()
 		for k := range grouper.Group {
-			iv := strings.Split(string(k.(types.String)), "_")
+			iv := strings.Split(string(k.(types.String)), compositeChar)
 			sr.Set(k, iv[i])
 		}
 		ret.AddSeries(y, sr)
@@ -148,7 +148,7 @@ func (grouper *Groups) Sum() *DataFrame {
 	for i, y := range grouper.Grouper {
 		sr := series.NewEmpty()
 		for k := range grouper.Group {
-			iv := strings.Split(string(k.(types.String)), "_")
+			iv := strings.Split(string(k.(types.String)), compositeChar)
 			sr.Set(k, iv[i])
 		}
 		ret.AddSeries(y, sr)
@@ -174,7 +174,7 @@ func (grouper *Groups) Mean() *DataFrame {
 	for i, y := range grouper.Grouper {
 		sr := series.NewEmpty()
 		for k := range grouper.Group {
-			iv := strings.Split(string(k.(types.String)), "_")
+			iv := strings.Split(string(k.(types.String)), compositeChar)
 			sr.Set(k, iv[i])
 		}
 		ret.AddSeries(y, sr)
