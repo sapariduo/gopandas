@@ -465,7 +465,7 @@ func (df *DataFrame) GroupBy(columns ...string) *Groups {
 
 			keys = append(keys, string(key))
 		}
-		idxkeys := types.String(strings.Join(keys, compositeChar))
+		idxkeys := types.String(strings.Join(keys, CompositeChar))
 		ret.Group[idxkeys] = append(ret.Group[idxkeys], val)
 	}
 
