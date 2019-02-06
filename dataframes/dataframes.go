@@ -41,7 +41,8 @@ type ConfigDataFrame struct {
 	TimeLayout string
 }
 
-var compositeChar = "<<|>>"
+// CompositeChar combine one and more column name as multi group identifier
+var CompositeChar = "<<|>>"
 
 // Basic Parser of string in a interface{}
 // Can be a float or a time in RFC3339 format {
