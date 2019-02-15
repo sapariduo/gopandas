@@ -61,7 +61,7 @@ func convertTo(s string) interface{} {
 
 func (df *DataFrame) ReIndex(indices indices.Indices) {
 	for _, col := range df.Columns {
-		df.Df[col].ReIndex(indices)
+		df.Df[col].ReArrange(indices)
 	}
 	df.Indices = indices
 }

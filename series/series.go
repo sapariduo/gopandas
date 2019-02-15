@@ -90,6 +90,21 @@ func (s *Series) ReIndex(idx indices.Indices) {
 	s.Indices = newIndices
 }
 
+func (s *Series) ReArrange(idx indices.Indices) {
+	if len(idx) != s.Len() {
+		fmt.Println("Error: mismatch lengths of series and new indices")
+	}
+	newIndices := make(indices.Indices, len(idx))
+	newValues := map[indices.Index]types.C{}
+
+	for i, index := range idx {
+		newIndices[i] = index
+		newValues[index] = s.Series[index]
+	}
+	s.Series = newValues
+	s.Indices = newIndices
+}
+
 //NewEmpty creates empty Series
 func NewEmpty() *Series {
 	return &Series{Series: map[indices.Index]types.C{}, Indices: indices.Indices{}}
