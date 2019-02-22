@@ -7,6 +7,7 @@ import (
 	"gopandas/types"
 	"reflect"
 	"strings"
+	"sync"
 )
 
 type Key map[string]types.C
@@ -25,6 +26,11 @@ type Groups struct {
 	Group   map[types.C][]indices.Index
 	// Group map[interface{}][]indices.Index
 	Df *DataFrame
+}
+
+type chanSeries struct {
+	column string
+	data   *series.Series
 }
 
 //NewGroup Create New Group based on column name
@@ -54,17 +60,38 @@ func (grouper *Groups) Info() *DataFrame {
 }
 
 //Max create Max value of Each column based on grouper
-func (grouper *Groups) Max() *DataFrame {
+func (grouper *Groups) Max(columns ...string) *DataFrame {
 	ret := NewEmpty()
+	var wg sync.WaitGroup
+	var grp []string
+	if len(columns) == 0 {
+		grp = grouper.Columns
+	} else {
+		grp = columns
+	}
+	srs := make(chan *chanSeries, len(grp))
+	wg.Add(len(grp))
+	for _, x := range grp {
+		go func(x string) {
+			defer wg.Done()
+			chvalue := &chanSeries{column: x}
+			sr := series.NewEmpty()
+			for k, v := range grouper.Group {
+				indices := v
+				dfs := grouper.Df.SelectByIndex(indices).Df[x].Max()
+				sr.Set(k, dfs)
+			}
+			chvalue.data = sr
 
-	for _, x := range grouper.Columns {
-		sr := series.NewEmpty()
-		for k, v := range grouper.Group {
-			indices := v
-			dfs := grouper.Df.SelectByIndex(indices).Df[x].Max()
-			sr.Set(k, dfs)
-		}
-		ret.AddSeries(x, sr)
+			srs <- chvalue
+		}(x)
+	}
+
+	wg.Wait()
+
+	for y := 0; y < cap(srs); y++ {
+		chans := <-srs
+		ret.AddSeries(chans.column, chans.data)
 	}
 
 	for i, y := range grouper.Grouper {
@@ -80,17 +107,38 @@ func (grouper *Groups) Max() *DataFrame {
 }
 
 //Min create Max value of Each column based on grouper
-func (grouper *Groups) Min() *DataFrame {
+func (grouper *Groups) Min(columns ...string) *DataFrame {
 	ret := NewEmpty()
+	var wg sync.WaitGroup
+	var grp []string
+	if len(columns) == 0 {
+		grp = grouper.Columns
+	} else {
+		grp = columns
+	}
+	srs := make(chan *chanSeries, len(grp))
+	wg.Add(len(grp))
+	for _, x := range grp {
+		go func(x string) {
+			defer wg.Done()
+			chvalue := &chanSeries{column: x}
+			sr := series.NewEmpty()
+			for k, v := range grouper.Group {
+				indices := v
+				dfs := grouper.Df.SelectByIndex(indices).Df[x].Min()
+				sr.Set(k, dfs)
+			}
+			chvalue.data = sr
 
-	for _, x := range grouper.Columns {
-		sr := series.NewEmpty()
-		for k, v := range grouper.Group {
-			indices := v
-			dfs := grouper.Df.SelectByIndex(indices).Df[x].Min()
-			sr.Set(k, dfs)
-		}
-		ret.AddSeries(x, sr)
+			srs <- chvalue
+		}(x)
+	}
+
+	wg.Wait()
+
+	for y := 0; y < cap(srs); y++ {
+		chans := <-srs
+		ret.AddSeries(chans.column, chans.data)
 	}
 
 	for i, y := range grouper.Grouper {
@@ -106,17 +154,38 @@ func (grouper *Groups) Min() *DataFrame {
 }
 
 //Count create Count value of Each column based on grouper
-func (grouper *Groups) Count() *DataFrame {
+func (grouper *Groups) Count(columns ...string) *DataFrame {
 	ret := NewEmpty()
+	var wg sync.WaitGroup
+	var grp []string
+	if len(columns) == 0 {
+		grp = grouper.Columns
+	} else {
+		grp = columns
+	}
+	srs := make(chan *chanSeries, len(grp))
+	wg.Add(len(grp))
+	for _, x := range grp {
+		go func(x string) {
+			defer wg.Done()
+			chvalue := &chanSeries{column: x}
+			sr := series.NewEmpty()
+			for k, v := range grouper.Group {
+				indices := v
+				dfs := grouper.Df.SelectByIndex(indices).Df[x].Len()
+				sr.Set(k, dfs)
+			}
+			chvalue.data = sr
 
-	for _, x := range grouper.Columns {
-		sr := series.NewEmpty()
-		for k, v := range grouper.Group {
-			indices := v
-			dfs := grouper.Df.SelectByIndex(indices).Len()
-			sr.Set(k, dfs)
-		}
-		ret.AddSeries(x, sr)
+			srs <- chvalue
+		}(x)
+	}
+
+	wg.Wait()
+
+	for y := 0; y < cap(srs); y++ {
+		chans := <-srs
+		ret.AddSeries(chans.column, chans.data)
 	}
 
 	for i, y := range grouper.Grouper {
@@ -132,17 +201,38 @@ func (grouper *Groups) Count() *DataFrame {
 }
 
 //Sum create Max value of Each column based on grouper
-func (grouper *Groups) Sum() *DataFrame {
+func (grouper *Groups) Sum(columns ...string) *DataFrame {
 	ret := NewEmpty()
+	var wg sync.WaitGroup
+	var grp []string
+	if len(columns) == 0 {
+		grp = grouper.Columns
+	} else {
+		grp = columns
+	}
+	srs := make(chan *chanSeries, len(grp))
+	wg.Add(len(grp))
+	for _, x := range grp {
+		go func(x string) {
+			defer wg.Done()
+			chvalue := &chanSeries{column: x}
+			sr := series.NewEmpty()
+			for k, v := range grouper.Group {
+				indices := v
+				dfs := grouper.Df.SelectByIndex(indices).Df[x].Sum()
+				sr.Set(k, dfs)
+			}
+			chvalue.data = sr
 
-	for _, x := range grouper.Columns {
-		sr := series.NewEmpty()
-		for k, v := range grouper.Group {
-			indices := v
-			dfs := grouper.Df.SelectByIndex(indices).Df[x].Sum()
-			sr.Set(k, dfs)
-		}
-		ret.AddSeries(x, sr)
+			srs <- chvalue
+		}(x)
+	}
+
+	wg.Wait()
+
+	for y := 0; y < cap(srs); y++ {
+		chans := <-srs
+		ret.AddSeries(chans.column, chans.data)
 	}
 
 	for i, y := range grouper.Grouper {
@@ -158,17 +248,38 @@ func (grouper *Groups) Sum() *DataFrame {
 }
 
 //Mean create Mean value of Each column based on grouper
-func (grouper *Groups) Mean() *DataFrame {
+func (grouper *Groups) Mean(columns ...string) *DataFrame {
 	ret := NewEmpty()
+	var wg sync.WaitGroup
+	var grp []string
+	if len(columns) == 0 {
+		grp = grouper.Columns
+	} else {
+		grp = columns
+	}
+	srs := make(chan *chanSeries, len(grp))
+	wg.Add(len(grp))
+	for _, x := range grp {
+		go func(x string) {
+			defer wg.Done()
+			chvalue := &chanSeries{column: x}
+			sr := series.NewEmpty()
+			for k, v := range grouper.Group {
+				indices := v
+				dfs := grouper.Df.SelectByIndex(indices).Df[x].Mean()
+				sr.Set(k, dfs)
+			}
+			chvalue.data = sr
 
-	for _, x := range grouper.Columns {
-		sr := series.NewEmpty()
-		for k, v := range grouper.Group {
-			indices := v
-			dfs := grouper.Df.SelectByIndex(indices).Df[x].Mean()
-			sr.Set(k, dfs)
-		}
-		ret.AddSeries(x, sr)
+			srs <- chvalue
+		}(x)
+	}
+
+	wg.Wait()
+
+	for y := 0; y < cap(srs); y++ {
+		chans := <-srs
+		ret.AddSeries(chans.column, chans.data)
 	}
 
 	for i, y := range grouper.Grouper {
