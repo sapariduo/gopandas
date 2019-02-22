@@ -278,6 +278,25 @@ func (df *DataFrame) Maps() map[string]interface{} {
 	return root
 }
 
+//Map create map representation of Dataframe
+func (df *DataFrame) Map(colName string) map[string]interface{} {
+	maps := make(map[string]interface{})
+	for _, v := range df.Indices {
+		vi := fmt.Sprintf("%v", reflect.ValueOf(v))
+		vx := df.Df[colName].Series[v]
+		switch vx.Type() {
+		case types.NUMERIC:
+			maps[vi] = float64(vx.(types.Numeric))
+
+		case types.STRING:
+			maps[vi] = vx
+		default:
+			maps[vi] = vx
+		}
+	}
+	return maps
+}
+
 //ToJson create JSON from dataframe
 func (df *DataFrame) ToJson() ([]byte, error) {
 	maps := make([]map[string]interface{}, df.NbLines)

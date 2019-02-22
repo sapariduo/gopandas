@@ -54,10 +54,10 @@ func (grouper *Groups) Info() *DataFrame {
 }
 
 //Max create Max value of Each column based on grouper
-func (grouper *Groups) Max() *DataFrame {
+func (grouper *Groups) Max(cols ...string) *DataFrame {
 	ret := NewEmpty()
 
-	for _, x := range grouper.Columns {
+	for _, x := range cols {
 		sr := series.NewEmpty()
 		for k, v := range grouper.Group {
 			indices := v
@@ -80,10 +80,10 @@ func (grouper *Groups) Max() *DataFrame {
 }
 
 //Min create Max value of Each column based on grouper
-func (grouper *Groups) Min() *DataFrame {
+func (grouper *Groups) Min(cols ...string) *DataFrame {
 	ret := NewEmpty()
 
-	for _, x := range grouper.Columns {
+	for _, x := range cols {
 		sr := series.NewEmpty()
 		for k, v := range grouper.Group {
 			indices := v
@@ -106,10 +106,10 @@ func (grouper *Groups) Min() *DataFrame {
 }
 
 //Count create Count value of Each column based on grouper
-func (grouper *Groups) Count() *DataFrame {
+func (grouper *Groups) Count(cols ...string) *DataFrame {
 	ret := NewEmpty()
 
-	for _, x := range grouper.Columns {
+	for _, x := range cols {
 		sr := series.NewEmpty()
 		for k, v := range grouper.Group {
 			indices := v
@@ -132,10 +132,10 @@ func (grouper *Groups) Count() *DataFrame {
 }
 
 //Sum create Max value of Each column based on grouper
-func (grouper *Groups) Sum() *DataFrame {
+func (grouper *Groups) Sum(cols ...string) *DataFrame {
 	ret := NewEmpty()
 
-	for _, x := range grouper.Columns {
+	for _, x := range cols {
 		sr := series.NewEmpty()
 		for k, v := range grouper.Group {
 			indices := v
@@ -158,10 +158,10 @@ func (grouper *Groups) Sum() *DataFrame {
 }
 
 //Mean create Mean value of Each column based on grouper
-func (grouper *Groups) Mean() *DataFrame {
+func (grouper *Groups) Mean(cols ...string) *DataFrame {
 	ret := NewEmpty()
 
-	for _, x := range grouper.Columns {
+	for _, x := range cols {
 		sr := series.NewEmpty()
 		for k, v := range grouper.Group {
 			indices := v
