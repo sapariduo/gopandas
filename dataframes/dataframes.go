@@ -441,6 +441,21 @@ func (df *DataFrame) SelectByIndex(indices indices.Indices) *DataFrame {
 	return ret
 }
 
+//Head make full copy of dataframe for first n-rows
+func (df *DataFrame) Head(number int) *DataFrame {
+	idx := df.Indices[:number]
+	dfs := df.SelectByIndex(idx)
+	return dfs
+}
+
+//Tail make full copy of dataframe for first n-rows
+func (df *DataFrame) Tail(number int) *DataFrame {
+	tailnum := df.Len() - number
+	idx := df.Indices[tailnum:]
+	dfs := df.SelectByIndex(idx)
+	return dfs
+}
+
 // Apply function apply a function on dataframe
 // To Do
 func (df *DataFrame) Apply(f func(types.C) types.C) {

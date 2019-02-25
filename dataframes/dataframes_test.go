@@ -269,3 +269,17 @@ func TestDataFrame_ToCSV(t *testing.T) {
 	// defer out.Close()
 	// out.Write(result)
 }
+
+func TestDataFrame_Head(t *testing.T) {
+	df := New([]string{"working", "person", "unit", "city"}, []*series.Series{workHour, person, department, city})
+	fmt.Println(df)
+	dfs := df.Head(2)
+	fmt.Println(dfs)
+}
+
+func TestDataFrame_Tail(t *testing.T) {
+	df := New([]string{"working", "person", "unit", "city"}, []*series.Series{workHour, person, department, city})
+	fmt.Println(df)
+	dfs := df.Tail(2)
+	fmt.Println(dfs)
+}
