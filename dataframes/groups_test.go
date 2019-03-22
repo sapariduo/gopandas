@@ -2,8 +2,9 @@ package dataframes
 
 import (
 	"fmt"
-	"gopandas/series"
 	"testing"
+
+	"github.com/sapariduo/gopandas/series"
 )
 
 func TestGroups_Max(t *testing.T) {

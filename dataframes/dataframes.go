@@ -5,10 +5,6 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"gopandas/indices"
-	"gopandas/series"
-	"gopandas/types"
-	"gopandas/utils"
 	"io"
 	"io/ioutil"
 	"log"
@@ -20,6 +16,10 @@ import (
 	"time"
 
 	"github.com/olekukonko/tablewriter"
+	"github.com/sapariduo/gopandas/indices"
+	"github.com/sapariduo/gopandas/series"
+	"github.com/sapariduo/gopandas/types"
+	"github.com/sapariduo/gopandas/utils"
 )
 
 // DataFrame is the structure of a dataframe, Data are avaibable with Df attribute
@@ -298,7 +298,7 @@ func (df *DataFrame) Map(colName string) map[string]interface{} {
 }
 
 //ToJson create JSON from dataframe
-func (df *DataFrame) ToJson() ([]byte, error) {
+func (df *DataFrame) ToJSON() ([]byte, error) {
 	maps := make([]map[string]interface{}, df.NbLines)
 	colnames := df.Columns
 	for i, x := range df.Indices {

@@ -2,12 +2,13 @@ package dataframes
 
 import (
 	"fmt"
-	"gopandas/indices"
-	"gopandas/series"
-	"gopandas/types"
 	"reflect"
 	"strings"
 	"sync"
+
+	"github.com/sapariduo/gopandas/indices"
+	"github.com/sapariduo/gopandas/series"
+	"github.com/sapariduo/gopandas/types"
 )
 
 type Key map[string]types.C

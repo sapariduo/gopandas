@@ -1,10 +1,11 @@
 package utils
 
 import (
-	"gopandas/indices"
-	"gopandas/types"
 	"log"
 	"time"
+
+	"github.com/sapariduo/gopandas/indices"
+	"github.com/sapariduo/gopandas/types"
 )
 
 type DateRange []types.Time

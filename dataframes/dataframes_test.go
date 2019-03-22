@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"gopandas/indices"
-	"gopandas/series"
-	"gopandas/types"
 	"math/rand"
 	"reflect"
 	"testing"
+
+	"github.com/sapariduo/gopandas/indices"
+	"github.com/sapariduo/gopandas/series"
+	"github.com/sapariduo/gopandas/types"
 )
 
 var (

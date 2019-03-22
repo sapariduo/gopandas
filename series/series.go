@@ -2,13 +2,15 @@ package series
 
 import (
 	"fmt"
-	"gopandas/indices"
-	"gopandas/types"
 	"log"
 	"math"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/sapariduo/gopandas/types"
+
+	"github.com/sapariduo/gopandas/indices"
 )
 
 // Series Type

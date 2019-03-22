@@ -2,9 +2,11 @@ package series
 
 import (
 	"fmt"
-	"gopandas/indices"
-	"gopandas/types"
 	"testing"
+	"time"
+
+	"github.com/sapariduo/gopandas/indices"
+	"github.com/sapariduo/gopandas/types"
 )
 
 func TestNew(t *testing.T) {
@@ -258,4 +260,31 @@ func Test_MixIntNan(t *testing.T) {
 	})
 
 	fmt.Println(s)
+}
+
+func TestSeries_Sort(t *testing.T) {
+	present := time.Now()
+	past := time.Now().Add(-24 * time.Hour)
+	future := time.Now().Add(24 * time.Hour)
+
+	s1 := New([]time.Time{present, past, future})
+	s2 := New([]time.Time{present, past, future})
+
+	tests := []struct {
+		name string
+		args *Series
+		want *Series
+	}{
+		{
+			name: "test sort date",
+			args: s1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.args.Sort()
+			fmt.Println("sorted series == ", tt.args)
+			fmt.Println("original series == ", s2)
+		})
+	}
 }
