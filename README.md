@@ -3,11 +3,11 @@ This package is full inspirated by the pandas package in python and try to repro
 
 - [x] Have a structure of data organized in columns (called a DataFrame)
 - [x] Create a DataFrame from a csv file
-- [ ] Convert a DataFrame into csv and json file
+- [x] Convert a DataFrame into csv and json file
 - [x] Selection by columns
 - [x] Selection by indices
 - [x] Filtering by logical operators
-- [ ] Group by
+- [x] Group by
 - [ ] Join
 - [x] Apply functions
 - [ ] Statistical functions
