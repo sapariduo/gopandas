@@ -111,6 +111,7 @@ func TestSeriesValuesCount(t *testing.T) {
 		3:      2,
 	})
 	counts := s.ValuesCount()
+	fmt.Println(counts)
 	for _, test := range tests {
 		if counts[test.c] != test.value {
 			t.Errorf("Error: %v:%d vs %v:%d", test.c, counts[test.c], test.c, test.value)

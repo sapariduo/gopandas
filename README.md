@@ -10,7 +10,7 @@ This package is full inspirated by the pandas package in python and try to repro
 - [x] Group by
 - [ ] Join
 - [x] Apply functions
-- [ ] Statistical functions
+- [x] Statistical functions
 
 This package has been develop with the intention to be usable by machine learning packages in go.
 
