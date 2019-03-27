@@ -233,14 +233,44 @@ func (df *DataFrame) String() string {
 	header := []string{"Index"}
 	header = append(header, df.Columns...)
 	table.SetHeader(header)
-	for _, index := range df.Indices {
-		l := []string{fmt.Sprintf("%v", index)}
-		for _, col := range df.Columns {
-			v, _ := df.Df[col].Get(index)
-			l = append(l, fmt.Sprintf("%v", v))
+	if df.NbLines <= 20 {
+		for _, index := range df.Indices {
+			l := []string{fmt.Sprintf("%v", index)}
+			for _, col := range df.Columns {
+				v, _ := df.Df[col].Get(index)
+				l = append(l, fmt.Sprintf("%v", v))
+			}
+			table.Append(l)
 		}
-		table.Append(l)
+	} else {
+		head := df.Head(10)
+		tail := df.Tail(10)
+
+		for _, hidx := range head.Indices {
+			l := []string{fmt.Sprintf("%v", hidx)}
+			for _, col := range df.Columns {
+				v, _ := df.Df[col].Get(hidx)
+				l = append(l, fmt.Sprintf("%v", v))
+			}
+			table.Append(l)
+		}
+		emptyline := []string{"-----"}
+		for range df.Columns {
+			emptyline = append(emptyline, "-----")
+		}
+		table.Append(emptyline)
+
+		for _, tidx := range tail.Indices {
+			l := []string{fmt.Sprintf("%v", tidx)}
+			for _, col := range df.Columns {
+				v, _ := df.Df[col].Get(tidx)
+				l = append(l, fmt.Sprintf("%v", v))
+			}
+			table.Append(l)
+		}
+
 	}
+
 	footer := make([]string, len(header))
 	footer[0] = fmt.Sprintf("COUNT:%v", df.NbLines)
 	for i, col := range df.Columns {

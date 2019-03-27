@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/sapariduo/gopandas/indices"
 	"github.com/sapariduo/gopandas/series"
@@ -23,6 +24,26 @@ var (
 
 type IdxList struct {
 	Idx []int
+}
+
+func TestLongPrint(t *testing.T) {
+	rand.Seed(time.Now().Unix())
+	status := []string{"magang", "kontrak", "permanen"}
+	salary := []int{10000, 9000, 4300, 5000, 3300, 6600}
+	df := NewEmpty()
+	df.Columns = []string{"status", "salary"}
+	df.Df["status"] = series.NewEmpty()
+	df.Df["salary"] = series.NewEmpty()
+	for i := 0; i < 100; i++ {
+		df.Indices = append(df.Indices, i)
+		df.Df["status"].Set(i, status[rand.Intn(len(status))])
+		df.Df["salary"].Set(i, salary[rand.Intn(len(salary))])
+		df.NbLines++
+	}
+
+	fmt.Println(df)
+	t.Logf("%s", "finished")
+
 }
 
 func TestNew(t *testing.T) {
@@ -108,9 +129,9 @@ func TestDataFrame_SelectByIndex(t *testing.T) {
 
 }
 
-func TestDataFrame_ToJson(t *testing.T) {
+func TestDataFrame_ToJSON(t *testing.T) {
 	df := New([]string{"working", "person", "unit"}, []*series.Series{workHour, person, department})
-	js, err := df.ToJson()
+	js, err := df.ToJSON()
 	if err != nil {
 		t.Error("failed to Marshall to json")
 	}
