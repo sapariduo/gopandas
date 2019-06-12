@@ -26,6 +26,11 @@ func StdDevS(input *series.Series) (sdev types.C, err error) {
 	return StandardDeviationSample(input)
 }
 
-func CummSum(data *series.Series, datetime *series.Series) (*dataframes.DataFrame, error) {
-	return CumulativeSum(data, datetime)
+// func CummSum(data *series.Series, datetime *series.Series) (*dataframes.DataFrame, error) {
+// 	return CumulativeSum(data, datetime)
+// }
+
+// CumSum is a shortcut to Cummulative Sum
+func CumSum(axis, datetime string, dataVal []string, dataframe *dataframes.DataFrame) (*dataframes.DataFrame, error) {
+	return Cummulative(axis, datetime, dataVal, dataframe)
 }
