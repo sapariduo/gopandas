@@ -169,7 +169,7 @@ func (grouper *Groups) Count(columns ...string) *DataFrame {
 	for _, x := range grp {
 		go func(x string) {
 			defer wg.Done()
-			chvalue := &chanSeries{column: x}
+			chvalue := &chanSeries{column: "count_" + x}
 			sr := series.NewEmpty()
 			for k, v := range grouper.Group {
 				indices := v
